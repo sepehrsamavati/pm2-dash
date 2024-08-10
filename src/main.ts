@@ -1,7 +1,6 @@
 import url from "node:url";
 import path from "node:path";
 import { app, BrowserWindow, ipcMain } from "electron";
-import Application from "./server/Application";
 
 const createWindow = () => {
     const mainWindow = new BrowserWindow({
@@ -16,8 +15,6 @@ const createWindow = () => {
     // mainWindow.loadFile(path.join(__dirname, "../public/index.html"));
 
     mainWindow.loadURL("http://localhost:3000");
-
-    // new Application().initialize().start();
 }
 
 app.whenReady().then(() => {
