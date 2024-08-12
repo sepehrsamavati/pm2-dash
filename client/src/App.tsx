@@ -1,18 +1,18 @@
 import Index from './pages/Index';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ThemeProvider } from '@mui/material';
 import MainLayout from './components/layout/MainLayout';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { muiThemeOptions, type ThemeName } from './core/config/muiConfig';
 
 function App() {
-  const [theme, setTheme] = useState<ThemeName>('dark');
+  const [theme] = useState<ThemeName>('dark');
+  const electronWindowOpened = useRef(false);
 
   useEffect(() => {
-    const callBack = async () => {
-      console.log(await window.electronAPI.setTitle('Bello'))
-    };
-    callBack();
+    if (electronWindowOpened.current) return;
+    electronWindowOpened.current = true;
+    window.electronAPI.clientReady();
   }, []);
 
   return (

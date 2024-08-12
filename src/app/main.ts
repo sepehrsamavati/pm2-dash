@@ -1,7 +1,7 @@
 import path from "node:path";
 import "../config/config.js";
 import "../config/ipcConfig.js";
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, ipcMain } from "electron";
 
 const createWindow = () => {
     const mainWindow = new BrowserWindow({
@@ -10,10 +10,15 @@ const createWindow = () => {
         darkTheme: true,
         webPreferences: {
             preload: path.join(__dirname, '..', 'clientPreload.js'),
-        }
+        },
+        show: false
     });
 
     // mainWindow.loadFile(path.join(__dirname, "../public/index.html"));
+
+    ipcMain.on("showMainFrame", () => {
+        mainWindow.show();
+    });
 
     mainWindow.loadURL("http://localhost:3000");
 };

@@ -1,3 +1,8 @@
+import type { Pm2ProcessDescription } from "./pm2";
+
 export type ElectronAPI = {
-    setTitle: (title: string) => Promise<number>
+    clientReady: () => void;
+    pm2: {
+        getList: () => Promise<Pm2ProcessDescription[]>;
+    };
 }
