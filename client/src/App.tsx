@@ -8,6 +8,13 @@ import { muiThemeOptions, type ThemeName } from './core/config/muiConfig';
 function App() {
   const [theme, setTheme] = useState<ThemeName>('dark');
 
+  useEffect(() => {
+    const callBack = async () => {
+      console.log(await window.electronAPI.setTitle('Bello'))
+    };
+    callBack();
+  }, []);
+
   return (
     <ThemeProvider theme={muiThemeOptions(theme)}>
       <BrowserRouter>

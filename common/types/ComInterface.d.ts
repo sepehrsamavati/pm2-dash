@@ -1,3 +1,3 @@
 export type ElectronAPI = {
-    setTitle: (title: string) => void
+    setTitle: (title: string) => Promise<number>
 }
