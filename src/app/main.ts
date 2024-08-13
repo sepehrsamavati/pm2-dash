@@ -1,7 +1,7 @@
 import path from "node:path";
 import "../config/config.js";
-import "../config/ipcConfig.js";
 import { app, BrowserWindow, ipcMain } from "electron";
+import { initializeIpcHandlers } from "../handlers/ipc.js";
 
 const createWindow = () => {
     const mainWindow = new BrowserWindow({
@@ -25,6 +25,7 @@ const createWindow = () => {
 
 app.whenReady().then(() => {
 
+    initializeIpcHandlers();
     createWindow();
 
     app.on('activate', function () {

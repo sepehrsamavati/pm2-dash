@@ -1,5 +1,6 @@
 import pm2 from "pm2";
 import { OperationResult } from "../models/OperationResult";
+import type { Pm2ProcessDescription } from "../../common/types/pm2";
 
 const logger = console;
 
@@ -45,14 +46,25 @@ class PM2Service {
         });
     }
 
-    list(): Promise<pm2.ProcessDescription[] | null> {
+    list(): Promise<Pm2ProcessDescription[] | null> {
         return new Promise(resolve => {
             pm2.list((err, list) => {
                 if (err) {
                     logger.error("PM2 list error, " + err.message);
                     return resolve(null);
                 }
-                resolve(list);
+                resolve(list.map(p => ({
+                    name: p.name ?? "-",
+                    pId: p.pid ?? -1,
+                    pmId: p.pm_id ?? -1,
+                    startTime: p.pm2_env?.pm_uptime ?? Date.now(),
+                    restartCount: p.pm2_env?.restart_time ?? p.pm2_env?.unstable_restarts ?? 0,
+                    usage: p.monit && {
+                        memory: p.monit.memory ?? -1,
+                        cpu: p.monit.cpu ?? -1
+                    },
+                    status: p.pm2_env?.status ?? "-"
+                })));
             });
         });
     }

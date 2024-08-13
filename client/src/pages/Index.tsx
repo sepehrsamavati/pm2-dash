@@ -5,7 +5,8 @@ import { Chip, Divider, Grid, Stack, Switch } from "@mui/material";
 import Button from "../components/Button";
 import { DataGrid } from "@mui/x-data-grid";
 import UIText from "../core/i18n/UIText";
-import { ChevronLeft } from "@mui/icons-material";
+import { ChevronLeft, Delete, PlayArrow, ReceiptLong, Recycling, RestartAlt, Stop } from "@mui/icons-material";
+import { msToHumanReadable } from "../core/helpers/msToHumanReadable";
 
 const statusToColor = (status: string) => {
     let color: 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' = "error";
@@ -62,6 +63,7 @@ export default function Index() {
                         <Grid item>
                             Auto refresh
                             <Switch
+                                color="success"
                                 checked={autoUpdateList}
                                 onClick={() => setAutoUpdateList(current => !current)}
                             />
@@ -92,6 +94,50 @@ export default function Index() {
                                 sortable: false,
                                 minWidth: 150,
                                 renderCell: ctx => <Chip size="small" color={statusToColor(ctx.value)} icon={<ChevronLeft />} label={ctx.value} />,
+                                // headerName: "UIText",
+                                align: "center", headerAlign: "center",
+                            },
+                            {
+                                field: 'restartCount',
+                                sortable: false,
+                                headerName: '🔄',
+                                minWidth: 50,
+                                // headerName: "UIText",
+                                align: "center", headerAlign: "center",
+                            },
+                            {
+                                field: 'startTime',
+                                sortable: false,
+                                minWidth: 80,
+                                renderCell: ctx => ctx.row.status === 'online' ? msToHumanReadable(Date.now() - ctx.value) : '-',
+                                // headerName: "UIText",
+                                align: "center", headerAlign: "center",
+                            },
+                            {
+                                field: 'operation' as keyof Pm2ProcessDescription,
+                                sortable: false,
+                                minWidth: 500,
+                                renderCell: ctx => (
+                                    <Stack gap={1} direction="row" padding={1} justifyContent="center">
+                                        {
+                                            ctx.row.status === 'stopped' ? (
+                                                <Button size="small" color="success" startIcon={<PlayArrow />}>Start</Button>
+                                            ) : null
+                                        }
+                                        {
+                                            ctx.row.status !== 'stopped' ? (
+                                                <Button size="small" color="error" startIcon={<Stop />}>Stop</Button>
+                                            ) : null
+                                        }
+                                        <Button size="small" color="warning" startIcon={<RestartAlt />}>Restart</Button>
+                                        <Button size="small" color="info" startIcon={<ReceiptLong />}>Flush</Button>
+                                        {
+                                            ctx.row.status === 'stopped' ? (
+                                                <Button size="small" color="error" startIcon={<Delete />}>Delete</Button>
+                                            ) : null
+                                        }
+                                    </Stack>
+                                ),
                                 // headerName: "UIText",
                                 align: "center", headerAlign: "center",
                             }
