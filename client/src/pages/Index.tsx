@@ -5,18 +5,23 @@ import { Badge, Box, Chip, Divider, Grid, Stack, Switch } from "@mui/material";
 import Button from "../components/Button";
 import { DataGrid } from "@mui/x-data-grid";
 import UIText from "../core/i18n/UIText";
-import { ChevronLeft, Delete, PlayArrow, ReceiptLong, Recycling, Refresh, RestartAlt, Stop } from "@mui/icons-material";
+import { CheckCircle, Delete, HighlightOff, ReceiptLong, Refresh, RestartAlt, SmsFailed, Stop } from "@mui/icons-material";
 import { msToHumanReadable } from "../core/helpers/msToHumanReadable";
 
 const statusToColor = (status: string) => {
     let color: 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' = "error";
 
-    switch (status) {
+    switch (status as Pm2ProcessDescription['status']) {
         case "online":
             color = "success";
             break;
-        case "stopped":
+        case "stopping":
             color = "info";
+            break;
+        case "stopped":
+        case "unstable":
+        case "errored":
+            color = "error";
             break;
     }
 
@@ -27,6 +32,7 @@ export default function Index() {
     const [lastListRefreshResponseTime, setLastListRefreshResponseTime] = useState<number>();
     const [autoUpdateList, setAutoUpdateList] = useState(true);
     const isLoadingList = useRef(false);
+    const [disableActions, setDisableActions] = useState(false);
     const [list, setList] = useState<Pm2ProcessDescription[]>();
     const lockedPmIds = useRef<Set<Pm2ProcessDescription['pmId']>>(new Set());
     const [, setDummy] = useState(0);
@@ -53,7 +59,7 @@ export default function Index() {
             });
     }, [refreshUI]);
 
-    const start = useCallback((process: Pm2ProcessDescription) => {
+    const restart = useCallback((process: Pm2ProcessDescription) => {
         const pmId = process.pmId;
         if (lockedPmIds.current.has(pmId)) return;
         lockedPmIds.current.add(pmId);
@@ -86,6 +92,43 @@ export default function Index() {
             });
     }, [refreshUI, getList]);
 
+    const flush = useCallback((process: Pm2ProcessDescription) => {
+        const pmId = process.pmId;
+        if (lockedPmIds.current.has(pmId)) return;
+        lockedPmIds.current.add(pmId);
+        refreshUI();
+        window.electronAPI
+            .pm2.flush(pmId)
+            .then(res => {
+
+            })
+            .finally(() => {
+                lockedPmIds.current.delete(pmId);
+                refreshUI();
+            });
+    }, [refreshUI]);
+
+    const flushAll = useCallback(() => {
+        setDisableActions(true);
+        window.electronAPI
+            .pm2.flush('')
+            .then(res => {
+
+            })
+            .finally(() => setDisableActions(false));
+    }, []);
+
+    const resetCounterAll = useCallback(() => {
+        setDisableActions(true);
+        window.electronAPI
+            .pm2.resetCounter('all')
+            .then(res => {
+                if (res.ok)
+                    getList();
+            })
+            .finally(() => setDisableActions(false));
+    }, [getList]);
+
     useEffect(() => {
         getList();
         const timer = setInterval(() => autoUpdateList && getList(), 5e3);
@@ -101,8 +144,8 @@ export default function Index() {
                     <Grid container spacing={1} justifyContent="space-between">
                         <Grid item>
                             <Stack direction="row" spacing={1} divider={<Divider orientation="vertical" flexItem />}>
-                                <Button variant="outlined" color="warning">Flush all</Button>
-                                <Button variant="outlined" color="info">Reset restart count</Button>
+                                <Button onClick={flushAll} variant="outlined" disabled={disableActions} color="warning">Flush all</Button>
+                                <Button onClick={resetCounterAll} variant="outlined" disabled={disableActions} color="info">Reset restart count</Button>
                             </Stack>
                         </Grid>
                         <Grid item>
@@ -116,7 +159,7 @@ export default function Index() {
                                     />
                                 </Box>
                                 <Badge variant="standard" color="info" badgeContent={`${lastListRefreshResponseTime}ms`}>
-                                    <Button fullWidth disabled={autoUpdateList} isLoading={isLoadingList.current} color="info" variant="outlined" startIcon={<Refresh />} onClick={getList}>Refresh</Button>
+                                    <Button fullWidth disabled={disableActions || autoUpdateList} isLoading={isLoadingList.current} color="info" variant="outlined" startIcon={<Refresh />} onClick={getList}>Refresh</Button>
                                 </Badge>
                             </Stack>
                         </Grid>
@@ -145,7 +188,22 @@ export default function Index() {
                                 field: 'status',
                                 sortable: false,
                                 minWidth: 150,
-                                renderCell: ctx => <Chip size="small" color={statusToColor(ctx.value)} icon={<ChevronLeft />} label={ctx.value} />,
+                                renderCell: ctx => {
+                                    let icon = <SmsFailed />;
+
+                                    switch (ctx.row.status) {
+                                        case "online":
+                                            icon = <CheckCircle />;
+                                            break;
+                                        case "errored":
+                                        case "stopping":
+                                        case "stopped":
+                                            icon = <HighlightOff />;
+                                            break;
+                                    }
+
+                                    return <Chip color={statusToColor(ctx.value)} icon={icon} label={ctx.value} />;
+                                },
                                 // headerName: "UIText",
                                 align: "center", headerAlign: "center",
                             },
@@ -171,46 +229,28 @@ export default function Index() {
                                 minWidth: 500,
                                 renderCell: ctx => (
                                     <Stack gap={1} direction="row" padding={1} justifyContent="center">
-                                        {
-                                            ctx.row.status === 'stopped' ? (
-                                                <Button
-                                                    size="small"
-                                                    disabled={lockedPmIds.current.has(ctx.row.pmId)}
-                                                    color="success"
-                                                    startIcon={<PlayArrow />}
-                                                    onClick={() => start(ctx.row)}
-                                                >Start</Button>
-                                            ) : null
-                                        }
-                                        {
-                                            ctx.row.status !== 'stopped' ? (
-                                                <Button
-                                                    size="small"
-                                                    disabled={lockedPmIds.current.has(ctx.row.pmId)}
-                                                    color="error"
-                                                    startIcon={<Stop />}
-                                                    onClick={() => stop(ctx.row)}
-                                                >Stop</Button>
-                                            ) : null
-                                        }
                                         <Button
                                             size="small"
-                                            disabled={lockedPmIds.current.has(ctx.row.pmId)}
-                                            color="warning"
+                                            disabled={disableActions || lockedPmIds.current.has(ctx.row.pmId)}
+                                            color="success"
                                             startIcon={<RestartAlt />}
-                                            onClick={() => start(ctx.row)}
+                                            onClick={() => restart(ctx.row)}
                                         >Restart</Button>
                                         <Button
                                             size="small"
-                                            disabled={lockedPmIds.current.has(ctx.row.pmId)}
+                                            disabled={disableActions || lockedPmIds.current.has(ctx.row.pmId)}
+                                            color="error"
+                                            startIcon={<Stop />}
+                                            onClick={() => stop(ctx.row)}
+                                        >Stop</Button>
+                                        <Button
+                                            size="small"
+                                            disabled={disableActions || lockedPmIds.current.has(ctx.row.pmId)}
                                             color="info"
                                             startIcon={<ReceiptLong />}
+                                            onClick={() => flush(ctx.row)}
                                         >Flush</Button>
-                                        {
-                                            ctx.row.status === 'stopped' ? (
-                                                <Button size="small" disabled={lockedPmIds.current.has(ctx.row.pmId)} color="error" startIcon={<Delete />}>Delete</Button>
-                                            ) : null
-                                        }
+                                        <Button size="small" disabled={ctx.row.status !== 'stopped' || (disableActions || lockedPmIds.current.has(ctx.row.pmId))} color="error" startIcon={<Delete />}>Delete</Button>
                                     </Stack>
                                 ),
                                 // headerName: "UIText",

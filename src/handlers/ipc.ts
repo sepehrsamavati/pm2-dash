@@ -25,6 +25,14 @@ export const initializeIpcHandlers = () => {
         return await clientSession.pm2Service.stop(id);
     });
 
+    ipcMain.handle('pm2:flush', async (_, id: number | string): ReturnType<ElectronAPI['pm2']['flush']> => {
+        return await clientSession.pm2Service.flush(id);
+    });
+
+    ipcMain.handle('pm2:resetCounter', async (_, id: number | string): ReturnType<ElectronAPI['pm2']['resetCounter']> => {
+        return await clientSession.pm2Service.reset(id);
+    });
+
     ipcMain.handle('pm2:getList', async (): ReturnType<ElectronAPI['pm2']['getList']> => {
         return await clientSession.pm2Service.list() ?? [];
     });

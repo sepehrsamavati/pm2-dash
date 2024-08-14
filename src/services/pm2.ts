@@ -93,6 +93,37 @@ class PM2Service {
         });
     }
 
+    flush(pmid: number | string): Promise<OperationResult> {
+        const result = new OperationResult();
+        return new Promise(resolve => {
+            pm2.flush(pmid, (err, proc) => {
+                if (err)
+                    resolve(result.failed(err.message));
+                else
+                    resolve(result.succeeded(proc.name));
+            });
+        });
+    }
+
+    async reset(pmid: number | string): Promise<OperationResult> {
+        const result = new OperationResult();
+
+        // @ts-ignore
+        if (typeof pm2.reset !== "function")
+            return result.failed("No reset function available!");
+
+        return new Promise(resolve => {
+            // @ts-ignore
+            (pm2.reset as typeof pm2.flush)
+                (pmid, (err, proc) => {
+                    if (err)
+                        resolve(result.failed(err.message));
+                    else
+                        resolve(result.succeeded(proc.name));
+                });
+        });
+    }
+
     #connect() {
         pm2.connect(err => {
             if (err) {
