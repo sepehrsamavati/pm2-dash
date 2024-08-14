@@ -66,13 +66,15 @@ function HttpServerForm(props: {
                     value={hostname}
                     label={UIText.hostname}
                     disabled={props.isLoading}
+                    onBlur={() => hostname === "" && setHostname("localhost")}
                     onChange={e => {
-                        const _hostname = e.target.value;
+                        let _hostname = e.target.value;
 
                         try {
-                            new URL(`http://${_hostname}`);
+                            const url = new URL(`http://${_hostname}`);
+                            _hostname = url.hostname;
                         } catch {
-                            return;
+                            return setHostname("");
                         }
 
                         setHostname(_hostname);
