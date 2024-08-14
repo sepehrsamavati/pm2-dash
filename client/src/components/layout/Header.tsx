@@ -1,5 +1,6 @@
+import { Close } from "@mui/icons-material";
 import constants from "../../core/config/constants";
-import { AppBar as MuiAppBar, Toolbar, Typography, AppBarProps as MuiAppBarProps, styled, Box } from "@mui/material";
+import { AppBar as MuiAppBar, Toolbar, Typography, AppBarProps as MuiAppBarProps, styled, Box, IconButton } from "@mui/material";
 
 interface AppBarProps extends MuiAppBarProps {
     open?: boolean;
@@ -28,6 +29,9 @@ export default function Header() {
             <Toolbar>
                 <Typography variant="h6" noWrap component="div">{constants.appTitle}</Typography>
                 <Box sx={{ flexGrow: 1 }} />
+                <IconButton color="error" onClick={() => window.electronAPI.closeApp()}>
+                    <Close />
+                </IconButton>
             </Toolbar>
         </AppBar>
     );

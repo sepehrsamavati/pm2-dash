@@ -20,6 +20,11 @@ const createWindow = () => {
         mainWindow.show();
     });
 
+    ipcMain.on("closeApp", () => {
+        mainWindow.close();
+        app.quit();
+    });
+
     mainWindow.loadURL("http://localhost:3000");
 };
 

@@ -5,7 +5,7 @@ import { Badge, Box, Chip, Divider, Grid, Stack, Switch } from "@mui/material";
 import Button from "../components/Button";
 import { DataGrid } from "@mui/x-data-grid";
 import UIText from "../core/i18n/UIText";
-import { CheckCircle, Delete, HighlightOff, ReceiptLong, Refresh, RestartAlt, SmsFailed, Stop } from "@mui/icons-material";
+import { AutoDelete, CheckCircle, DeleteForever, HighlightOff, ReceiptLong, Refresh, RestartAlt, SmsFailed, Stop } from "@mui/icons-material";
 import { msToHumanReadable } from "../core/helpers/msToHumanReadable";
 
 const statusToColor = (status: string) => {
@@ -107,6 +107,23 @@ export default function Index() {
                 refreshUI();
             });
     }, [refreshUI]);
+
+    const resetCounter = useCallback((process: Pm2ProcessDescription) => {
+        const pmId = process.pmId;
+        if (lockedPmIds.current.has(pmId)) return;
+        lockedPmIds.current.add(pmId);
+        refreshUI();
+        window.electronAPI
+            .pm2.resetCounter(pmId)
+            .then(res => {
+                if (res.ok)
+                    getList();
+            })
+            .finally(() => {
+                lockedPmIds.current.delete(pmId);
+                refreshUI();
+            });
+    }, [refreshUI, getList]);
 
     const flushAll = useCallback(() => {
         setDisableActions(true);
@@ -246,11 +263,18 @@ export default function Index() {
                                         <Button
                                             size="small"
                                             disabled={disableActions || lockedPmIds.current.has(ctx.row.pmId)}
-                                            color="info"
+                                            color="warning"
                                             startIcon={<ReceiptLong />}
                                             onClick={() => flush(ctx.row)}
                                         >Flush</Button>
-                                        <Button size="small" disabled={ctx.row.status !== 'stopped' || (disableActions || lockedPmIds.current.has(ctx.row.pmId))} color="error" startIcon={<Delete />}>Delete</Button>
+                                        <Button
+                                            size="small"
+                                            disabled={disableActions || lockedPmIds.current.has(ctx.row.pmId)}
+                                            color="info"
+                                            startIcon={<AutoDelete />}
+                                            onClick={() => resetCounter(ctx.row)}
+                                        >Reset</Button>
+                                        <Button size="small" disabled={ctx.row.status !== 'stopped' || (disableActions || lockedPmIds.current.has(ctx.row.pmId))} color="error" startIcon={<DeleteForever />}>Delete</Button>
                                     </Stack>
                                 ),
                                 // headerName: "UIText",
