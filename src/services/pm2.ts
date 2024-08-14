@@ -105,6 +105,4 @@ class PM2Service {
     }
 }
 
-const pm2Service = new PM2Service();
-
-export default pm2Service;
+export default PM2Service;

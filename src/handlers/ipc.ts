@@ -1,8 +1,9 @@
 import { ipcMain } from "electron";
-import pm2Service from "../services/pm2";
-import type { ElectronAPI } from "../../common/types/ComInterface";
+import ClientSession from "../app/ClientSession";
+import type { ElectronAPI, Pm2ConnectionType } from "../../common/types/ComInterface";
 
 let initialized = false;
+let clientSession = new ClientSession();
 
 export const initializeIpcHandlers = () => {
     if (initialized) {
@@ -11,7 +12,20 @@ export const initializeIpcHandlers = () => {
     }
     initialized = true;
 
-    ipcMain.handle('pm2:getList', async (event, title): ReturnType<ElectronAPI['pm2']['getList']> => {
-        return await pm2Service.list() ?? [];
+    ipcMain.handle('setPm2ConnectionType', async (_, type: Pm2ConnectionType): ReturnType<ElectronAPI['setPm2ConnectionType']> => {
+        clientSession.connectionType = type;
+        return;
+    });
+
+    ipcMain.handle('pm2:restart', async (_, id: number | string): ReturnType<ElectronAPI['pm2']['restart']> => {
+        return await clientSession.pm2Service.restart(id);
+    });
+
+    ipcMain.handle('pm2:stop', async (_, id: number | string): ReturnType<ElectronAPI['pm2']['stop']> => {
+        return await clientSession.pm2Service.stop(id);
+    });
+
+    ipcMain.handle('pm2:getList', async (): ReturnType<ElectronAPI['pm2']['getList']> => {
+        return await clientSession.pm2Service.list() ?? [];
     });
 };

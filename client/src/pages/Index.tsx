@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import ContentContainer from "../components/layout/ContentContainer";
 import type { Pm2ProcessDescription } from "../../../common/types/pm2";
-import { Chip, Divider, Grid, Stack, Switch } from "@mui/material";
+import { Badge, Box, Chip, Divider, Grid, Stack, Switch } from "@mui/material";
 import Button from "../components/Button";
 import { DataGrid } from "@mui/x-data-grid";
 import UIText from "../core/i18n/UIText";
-import { ChevronLeft, Delete, PlayArrow, ReceiptLong, Recycling, RestartAlt, Stop } from "@mui/icons-material";
+import { ChevronLeft, Delete, PlayArrow, ReceiptLong, Recycling, Refresh, RestartAlt, Stop } from "@mui/icons-material";
 import { msToHumanReadable } from "../core/helpers/msToHumanReadable";
 
 const statusToColor = (status: string) => {
@@ -24,22 +24,67 @@ const statusToColor = (status: string) => {
 };
 
 export default function Index() {
+    const [lastListRefreshResponseTime, setLastListRefreshResponseTime] = useState<number>();
     const [autoUpdateList, setAutoUpdateList] = useState(true);
     const isLoadingList = useRef(false);
     const [list, setList] = useState<Pm2ProcessDescription[]>();
+    const lockedPmIds = useRef<Set<Pm2ProcessDescription['pmId']>>(new Set());
+    const [, setDummy] = useState(0);
+    const refreshUI = useCallback(() => setDummy(current => current + 1), []);
 
     const getList = useCallback(() => {
         if (isLoadingList.current) return;
         isLoadingList.current = true;
+        refreshUI();
+        const start = performance.now();
         window.electronAPI
             .pm2.getList()
             .then(res => {
+                const end = performance.now();
+                setLastListRefreshResponseTime(Math.round(end - start));
+
                 if (res) {
                     setList(res);
                 }
             })
-            .finally(() => isLoadingList.current = false);
-    }, []);
+            .finally(() => {
+                isLoadingList.current = false;
+                refreshUI();
+            });
+    }, [refreshUI]);
+
+    const start = useCallback((process: Pm2ProcessDescription) => {
+        const pmId = process.pmId;
+        if (lockedPmIds.current.has(pmId)) return;
+        lockedPmIds.current.add(pmId);
+        refreshUI();
+        window.electronAPI
+            .pm2.restart(pmId)
+            .then(res => {
+
+            })
+            .finally(() => {
+                getList();
+                lockedPmIds.current.delete(pmId);
+                // do not refresh ui till next get list
+            });
+    }, [refreshUI, getList]);
+
+    const stop = useCallback((process: Pm2ProcessDescription) => {
+        const pmId = process.pmId;
+        if (lockedPmIds.current.has(pmId)) return;
+        lockedPmIds.current.add(pmId);
+        refreshUI();
+        window.electronAPI
+            .pm2.stop(pmId)
+            .then(res => {
+
+            })
+            .finally(() => {
+                getList();
+                lockedPmIds.current.delete(pmId);
+            });
+    }, [refreshUI, getList]);
 
     useEffect(() => {
         getList();
@@ -61,12 +106,19 @@ export default function Index() {
                             </Stack>
                         </Grid>
                         <Grid item>
-                            Auto refresh
-                            <Switch
-                                color="success"
-                                checked={autoUpdateList}
-                                onClick={() => setAutoUpdateList(current => !current)}
-                            />
+                            <Stack>
+                                <Box marginBottom={1} paddingInlineStart={1}>
+                                    Auto refresh
+                                    <Switch
+                                        color="info"
+                                        checked={autoUpdateList}
+                                        onClick={() => setAutoUpdateList(current => !current)}
+                                    />
+                                </Box>
+                                <Badge variant="standard" color="info" badgeContent={`${lastListRefreshResponseTime}ms`}>
+                                    <Button fullWidth disabled={autoUpdateList} isLoading={isLoadingList.current} color="info" variant="outlined" startIcon={<Refresh />} onClick={getList}>Refresh</Button>
+                                </Badge>
+                            </Stack>
                         </Grid>
                     </Grid>
                 </Grid>
@@ -121,19 +173,42 @@ export default function Index() {
                                     <Stack gap={1} direction="row" padding={1} justifyContent="center">
                                         {
                                             ctx.row.status === 'stopped' ? (
-                                                <Button size="small" color="success" startIcon={<PlayArrow />}>Start</Button>
+                                                <Button
+                                                    size="small"
+                                                    disabled={lockedPmIds.current.has(ctx.row.pmId)}
+                                                    color="success"
+                                                    startIcon={<PlayArrow />}
+                                                    onClick={() => start(ctx.row)}
+                                                >Start</Button>
                                             ) : null
                                         }
                                         {
                                             ctx.row.status !== 'stopped' ? (
-                                                <Button size="small" color="error" startIcon={<Stop />}>Stop</Button>
+                                                <Button
+                                                    size="small"
+                                                    disabled={lockedPmIds.current.has(ctx.row.pmId)}
+                                                    color="error"
+                                                    startIcon={<Stop />}
+                                                    onClick={() => stop(ctx.row)}
+                                                >Stop</Button>
                                             ) : null
                                         }
-                                        <Button size="small" color="warning" startIcon={<RestartAlt />}>Restart</Button>
-                                        <Button size="small" color="info" startIcon={<ReceiptLong />}>Flush</Button>
+                                        <Button
+                                            size="small"
+                                            disabled={lockedPmIds.current.has(ctx.row.pmId)}
+                                            color="warning"
+                                            startIcon={<RestartAlt />}
+                                            onClick={() => start(ctx.row)}
+                                        >Restart</Button>
+                                        <Button
+                                            size="small"
+                                            disabled={lockedPmIds.current.has(ctx.row.pmId)}
+                                            color="info"
+                                            startIcon={<ReceiptLong />}
+                                        >Flush</Button>
                                         {
                                             ctx.row.status === 'stopped' ? (
-                                                <Button size="small" color="error" startIcon={<Delete />}>Delete</Button>
+                                                <Button size="small" disabled={lockedPmIds.current.has(ctx.row.pmId)} color="error" startIcon={<Delete />}>Delete</Button>
                                             ) : null
                                         }
                                     </Stack>

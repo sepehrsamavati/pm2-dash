@@ -24,14 +24,8 @@ const createWindow = () => {
 };
 
 app.whenReady().then(() => {
-
     initializeIpcHandlers();
     createWindow();
-
-    app.on('activate', function () {
-        if (BrowserWindow.getAllWindows().length === 0)
-            createWindow();
-    });
 });
 
 app.on('window-all-closed', function () {
