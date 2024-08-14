@@ -1,13 +1,17 @@
 import List from './pages/List';
 import Connect from './pages/Connect';
 import { ThemeProvider } from '@mui/material';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import MainLayout from './components/layout/MainLayout';
+import Session, { SessionContext } from './core/Session';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { muiThemeOptions, type ThemeName } from './core/config/muiConfig';
 
 function App() {
   const [theme] = useState<ThemeName>('dark');
+  const [, setDummyState] = useState(0);
+  const refreshUI = useCallback(() => setDummyState(current => current + 1), []);
+  const session = useMemo(() => new Session(refreshUI), [refreshUI]);
   const electronWindowOpened = useRef(false);
 
   useEffect(() => {
@@ -18,14 +22,16 @@ function App() {
 
   return (
     <ThemeProvider theme={muiThemeOptions(theme)}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<MainLayout />}>
-            <Route path="/" element={<Connect />} />
-            <Route path="/List" element={<List />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <SessionContext.Provider value={session}>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<MainLayout />}>
+              <Route path="/" element={<Connect />} />
+              <Route path="/List" element={<List />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </SessionContext.Provider>
     </ThemeProvider>
   );
 }

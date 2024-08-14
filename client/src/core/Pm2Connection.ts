@@ -1,5 +1,6 @@
 import type { IPm2Connection } from "../types/pm2Connection";
 import type { Pm2ConnectionType } from "../../../common/types/ComInterface";
+import { OperationResultType } from "../../../common/types/OperationResult";
 
 export class Pm2LocalIpcConnection implements IPm2Connection {
     private _isConnected = false;
@@ -9,6 +10,15 @@ export class Pm2LocalIpcConnection implements IPm2Connection {
 
     get name(): Pm2ConnectionType {
         return "LOCAL_IPC";
+    }
+
+    async connect() {
+        const result = await window.electronAPI.pm2.initIpc();
+
+        if (result.ok)
+            this._isConnected = true;
+
+        return result;
     }
 }
 
@@ -25,4 +35,8 @@ export class Pm2HttpServerConnection implements IPm2Connection {
     protocol: 'http' | 'https' = 'http';
     hostname = 'localhost';
     port = '80';
+
+    async connect(): Promise<OperationResultType> {
+        throw new Error("Method not implemented.");
+    }
 }

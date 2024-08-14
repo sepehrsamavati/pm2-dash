@@ -189,6 +189,7 @@ export default function Index() {
                         disableColumnResize
                         disableRowSelectionOnClick
                         hideFooter
+                        autoHeight
                         paginationMode="client"
                         localeText={{
                             noRowsLabel: UIText.noContentToShow

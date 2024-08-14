@@ -2,10 +2,12 @@ import { useCallback, useState } from "react";
 import UIText from "../core/i18n/UIText";
 import Button from "../components/Button";
 import colors from "../core/config/colors";
+import { useSession } from "../core/Session";
 import { useNavigate } from "react-router-dom";
 import constants from "../core/config/constants";
 import AppVersion from "../components/AppVersion";
 import CenteredContent from "../components/CenteredContent";
+import { Pm2LocalIpcConnection } from "../core/Pm2Connection";
 import { ChevronRight, Http, Terminal } from "@mui/icons-material";
 import type { Pm2ConnectionType } from "../../../common/types/ComInterface";
 import { Box, FormControl, Grid, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
@@ -14,19 +16,21 @@ function LocalIpcForm(props: {
     isLoading: boolean;
     lockForm: (lock: boolean) => void;
 }) {
+    const session = useSession();
     const navigate = useNavigate();
 
     const connect = useCallback(() => {
         props.lockForm(true);
-        window.electronAPI
-            .pm2.initIpc()
+        const connection = new Pm2LocalIpcConnection();
+        session.pm2Connection = connection;
+        connection.connect()
             .then(res => {
                 if (res.ok) {
                     navigate("/List");
                 }
             })
             .finally(() => props.lockForm(false));
-    }, [props, navigate]);
+    }, [props, session, navigate]);
 
     return (
         <Button
