@@ -6,7 +6,7 @@ import Button from "../components/Button";
 import { DataGrid } from "@mui/x-data-grid";
 import UIText from "../core/i18n/UIText";
 import { AutoDelete, CheckCircle, DeleteForever, HighlightOff, ReceiptLong, Refresh, RestartAlt, SmsFailed, Stop } from "@mui/icons-material";
-import { msToHumanReadable } from "../core/helpers/msToHumanReadable";
+import { msToHumanReadable, bytesToSize } from "../core/helpers/toHumanReadable";
 
 const statusToColor = (status: string) => {
     let color: 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' = "error";
@@ -29,7 +29,7 @@ const statusToColor = (status: string) => {
 };
 
 export default function Index() {
-    const [lastListRefreshResponseTime, setLastListRefreshResponseTime] = useState<number>();
+    const [lastListRefreshResponseTime, setLastListRefreshResponseTime] = useState(0);
     const [autoUpdateList, setAutoUpdateList] = useState(true);
     const isLoadingList = useRef(false);
     const [disableActions, setDisableActions] = useState(false);
@@ -175,7 +175,7 @@ export default function Index() {
                                         onClick={() => setAutoUpdateList(current => !current)}
                                     />
                                 </Box>
-                                <Badge variant="standard" color="info" badgeContent={`${lastListRefreshResponseTime}ms`}>
+                                <Badge variant="standard" color="info" showZero={false} badgeContent={lastListRefreshResponseTime && `${lastListRefreshResponseTime}ms`}>
                                     <Button fullWidth disabled={disableActions || autoUpdateList} isLoading={isLoadingList.current} color="info" variant="outlined" startIcon={<Refresh />} onClick={getList}>Refresh</Button>
                                 </Badge>
                             </Stack>
@@ -186,8 +186,9 @@ export default function Index() {
                     <DataGrid<Pm2ProcessDescription>
                         disableColumnFilter
                         disableColumnMenu
+                        disableColumnResize
                         disableRowSelectionOnClick
-                        hideFooterPagination
+                        hideFooter
                         paginationMode="client"
                         localeText={{
                             noRowsLabel: UIText.noContentToShow
@@ -229,15 +230,37 @@ export default function Index() {
                                 sortable: false,
                                 headerName: '🔄',
                                 minWidth: 50,
-                                // headerName: "UIText",
                                 align: "center", headerAlign: "center",
                             },
                             {
-                                field: 'startTime',
+                                field: 'cpu',
+                                renderCell: ctx => {
+                                    if (!ctx.row.usage) return '-';
+                                    const percentUsage = ctx.row.usage.cpu;
+                                    return <Chip variant="outlined" color={percentUsage > 50 ? "error" : (percentUsage > 10 ? "warning" : "info")} label={ctx.row.usage?.cpu} />;
+                                },
                                 sortable: false,
-                                minWidth: 80,
-                                renderCell: ctx => ctx.row.status === 'online' ? msToHumanReadable(Date.now() - ctx.value) : '-',
-                                // headerName: "UIText",
+                                headerName: 'CPU (%)',
+                                minWidth: 100,
+                                align: "center", headerAlign: "center",
+                            },
+                            {
+                                field: 'memory',
+                                renderCell: ctx => {
+                                    if (!ctx.row.usage) return '-';
+                                    const ramUsage = ctx.row.usage.memory;
+                                    return <Chip variant="outlined" color={ramUsage > 1024 ? "error" : (ramUsage > 300 ? "warning" : "info")} label={bytesToSize(ramUsage)} />;
+                                },
+                                sortable: false,
+                                headerName: 'RAM (MB)',
+                                minWidth: 150,
+                                align: "center", headerAlign: "center",
+                            },
+                            {
+                                field: '⌚',
+                                sortable: false,
+                                minWidth: 50,
+                                renderCell: ctx => ctx.row.status === 'online' ? msToHumanReadable(Date.now() - ctx.row.startTime) : '-',
                                 align: "center", headerAlign: "center",
                             },
                             {

@@ -59,10 +59,10 @@ class PM2Service {
                     pmId: p.pm_id ?? -1,
                     startTime: p.pm2_env?.pm_uptime ?? Date.now(),
                     restartCount: p.pm2_env?.restart_time ?? p.pm2_env?.unstable_restarts ?? 0,
-                    usage: p.monit && {
+                    usage: p.monit && p.pm2_env?.status !== "stopped" && {
                         memory: p.monit.memory ?? -1,
                         cpu: p.monit.cpu ?? -1
-                    },
+                    } || undefined,
                     status: p.pm2_env?.status ?? "-"
                 })));
             });

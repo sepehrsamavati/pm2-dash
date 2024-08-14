@@ -1,3 +1,10 @@
+export function bytesToSize(bytes: number) {
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    if (bytes === 0) return '0 Byte';
+    const i = Number.parseInt(Math.floor(Math.log(bytes) / Math.log(1024)) as unknown as string);
+    return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i];
+}
+
 export function msToHumanReadable(ms: number) {
     const seconds = Math.floor(ms / 1000);
     const minutes = Math.floor(seconds / 60);
