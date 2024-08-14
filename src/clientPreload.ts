@@ -4,8 +4,9 @@ import type { ElectronAPI } from "../common/types/ComInterface";
 contextBridge.exposeInMainWorld('electronAPI', {
     clientReady: () => ipcRenderer.send('showMainFrame'),
     closeApp: () => ipcRenderer.send('closeApp'),
-    setPm2ConnectionType: (type) => ipcRenderer.invoke('setPm2ConnectionType', type),
     pm2: {
+        initIpc: () => ipcRenderer.invoke('pm2:initIpc'),
+        initHttp: (basePath: string) => ipcRenderer.invoke('pm2:initHttp', basePath),
         restart: (pmId: number | string) => ipcRenderer.invoke('pm2:restart', pmId),
         stop: (pmId: number | string) => ipcRenderer.invoke('pm2:stop', pmId),
         flush: (pmId: number | string) => ipcRenderer.invoke('pm2:flush', pmId),

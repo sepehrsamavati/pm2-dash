@@ -12,10 +12,14 @@ export const initializeIpcHandlers = () => {
     }
     initialized = true;
 
-    ipcMain.handle('setPm2ConnectionType', async (_, type: Pm2ConnectionType): ReturnType<ElectronAPI['setPm2ConnectionType']> => {
-        clientSession.connectionType = type;
-        return;
+    ipcMain.handle('pm2:initIpc', async (): ReturnType<ElectronAPI['pm2']['initIpc']> => {
+        clientSession.connectionType = "LOCAL_IPC";
+        return await clientSession.pm2Service.connect();
     });
+
+    // ipcMain.handle('pm2:initHttp', async (_, basePath: string): ReturnType<ElectronAPI['pm2']['initHttp']> => {
+    //     clientSession.connectionType = "HTTP_SERVER";
+    // });
 
     ipcMain.handle('pm2:restart', async (_, id: number | string): ReturnType<ElectronAPI['pm2']['restart']> => {
         return await clientSession.pm2Service.restart(id);

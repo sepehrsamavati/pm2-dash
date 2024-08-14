@@ -6,14 +6,6 @@ const logger = console;
 
 class PM2Service {
 
-    init() {
-        this.#connect();
-    }
-
-    async dispose() {
-        pm2.disconnect();
-    }
-
     getLogPath(pmid: number | string, type: 'out' | 'err' = 'out'): Promise<string | null> {
         return new Promise(resolve => {
             pm2.describe(pmid, (err, info) => {
@@ -124,15 +116,24 @@ class PM2Service {
         });
     }
 
-    #connect() {
-        pm2.connect(err => {
-            if (err) {
-                logger.error(`PM2 connect error: ${err.message}`);
-                return;
-            }
+    async connect(): Promise<OperationResult> {
+        return new Promise(resolve => {
+            pm2.connect(err => {
+                const result = new OperationResult();
 
-            logger.info("PM2 connected successfully");
+                if (err) {
+                    logger.error(`PM2 connect error: ${err.message}`);
+                    resolve(result.failed());
+                }
+
+                logger.info("PM2 connected successfully");
+                resolve(result.succeeded());
+            });
         });
+    }
+
+    async disconnect1() {
+        pm2.disconnect();
     }
 }
 

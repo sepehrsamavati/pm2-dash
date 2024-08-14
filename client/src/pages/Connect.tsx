@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import UIText from "../core/i18n/UIText";
 import Button from "../components/Button";
 import colors from "../core/config/colors";
+import { useNavigate } from "react-router-dom";
 import constants from "../core/config/constants";
 import AppVersion from "../components/AppVersion";
-import { ChevronRight, Http, Terminal } from "@mui/icons-material";
 import CenteredContent from "../components/CenteredContent";
+import { ChevronRight, Http, Terminal } from "@mui/icons-material";
 import type { Pm2ConnectionType } from "../../../common/types/ComInterface";
 import { Box, FormControl, Grid, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
 
@@ -13,8 +14,28 @@ function LocalIpcForm(props: {
     isLoading: boolean;
     lockForm: (lock: boolean) => void;
 }) {
+    const navigate = useNavigate();
+
+    const connect = useCallback(() => {
+        props.lockForm(true);
+        window.electronAPI
+            .pm2.initIpc()
+            .then(res => {
+                if (res.ok) {
+                    navigate("/List");
+                }
+            })
+            .finally(() => props.lockForm(false));
+    }, [props, navigate]);
+
     return (
-        <Button color="success" isLoading={props.isLoading} startIcon={<ChevronRight />} endIcon={<Terminal />}>{UIText.connect}</Button>
+        <Button
+            color="success"
+            isLoading={props.isLoading}
+            startIcon={<ChevronRight />}
+            endIcon={<Terminal />}
+            onClick={connect}
+        >{UIText.connect}</Button>
     );
 }
 
