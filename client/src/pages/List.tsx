@@ -147,7 +147,7 @@ export default function Index() {
     }, [getList]);
 
     useEffect(() => {
-        getList();
+        autoUpdateList && getList();
         const timer = setInterval(() => autoUpdateList && getList(), 5e3);
         return () => {
             clearInterval(timer);
