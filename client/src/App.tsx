@@ -1,6 +1,7 @@
-import Index from './pages/Index';
-import { useEffect, useRef, useState } from 'react';
+import List from './pages/List';
+import Connect from './pages/Connect';
 import { ThemeProvider } from '@mui/material';
+import { useEffect, useRef, useState } from 'react';
 import MainLayout from './components/layout/MainLayout';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { muiThemeOptions, type ThemeName } from './core/config/muiConfig';
@@ -20,7 +21,8 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<MainLayout />}>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<Connect />} />
+            <Route path="/List" element={<List />} />
           </Route>
         </Routes>
       </BrowserRouter>
