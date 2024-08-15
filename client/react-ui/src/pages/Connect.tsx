@@ -9,7 +9,7 @@ import AppVersion from "../components/AppVersion";
 import CenteredContent from "../components/CenteredContent";
 import { Pm2LocalIpcConnection } from "../core/Pm2Connection";
 import { ChevronRight, Http, Terminal } from "@mui/icons-material";
-import type { Pm2ConnectionType } from "../../../common/types/ComInterface";
+import type { Pm2ConnectionType } from "@/common/types/ComInterface";
 import { Box, FormControl, Grid, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
 
 function LocalIpcForm(props: {

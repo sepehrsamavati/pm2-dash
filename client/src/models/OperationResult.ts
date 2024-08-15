@@ -1,4 +1,4 @@
-import type { OperationResultType, OperationResultWithDataType } from "../../common/types/OperationResult";
+import type { OperationResultType, OperationResultWithDataType } from "../../../common/types/OperationResult";
 
 export class OperationResult implements OperationResultType {
     ok = false;

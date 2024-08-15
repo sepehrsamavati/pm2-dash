@@ -1,6 +1,6 @@
 import type { IPm2Connection } from "../types/pm2Connection";
-import type { Pm2ConnectionType } from "../../../common/types/ComInterface";
-import { OperationResultType } from "../../../common/types/OperationResult";
+import type { Pm2ConnectionType } from "@/common/types/ComInterface";
+import { OperationResultType } from "@/common/types/OperationResult";
 
 export class Pm2LocalIpcConnection implements IPm2Connection {
     private _isConnected = false;
