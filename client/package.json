@@ -16,6 +16,7 @@
     "typescript": "^5.5.4"
   },
   "dependencies": {
-    "pm2": "^5.4.2"
+    "pm2": "^5.4.2",
+    "common": "workspace:common"
   }
 }

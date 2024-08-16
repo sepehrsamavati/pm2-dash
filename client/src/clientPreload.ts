@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
-import type { ElectronAPI } from "../../common/types/ComInterface";
+import type { ElectronAPI } from "common/types";
 
 contextBridge.exposeInMainWorld('electronAPI', {
     clientReady: () => ipcRenderer.send('showMainFrame'),
