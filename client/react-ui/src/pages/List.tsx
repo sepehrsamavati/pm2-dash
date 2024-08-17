@@ -250,7 +250,7 @@ export default function Index() {
                                 renderCell: ctx => {
                                     if (!ctx.row.usage) return '-';
                                     const ramUsage = ctx.row.usage.memory;
-                                    return <Chip variant="outlined" color={ramUsage > 1024 ? "error" : (ramUsage > 300 ? "warning" : "info")} label={bytesToSize(ramUsage)} />;
+                                    return <Chip variant="outlined" color={ramUsage > 1024e6 ? "error" : (ramUsage > 300e6 ? "warning" : "info")} label={bytesToSize(ramUsage)} />;
                                 },
                                 sortable: false,
                                 headerName: 'RAM (MB)',
