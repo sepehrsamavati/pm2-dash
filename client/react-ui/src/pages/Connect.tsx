@@ -1,15 +1,15 @@
 import { useCallback, useState } from "react";
-import UIText from "../core/i18n/UIText";
 import Button from "../components/Button";
 import colors from "../core/config/colors";
 import { useSession } from "../core/Session";
 import { useNavigate } from "react-router-dom";
 import constants from "../core/config/constants";
 import AppVersion from "../components/AppVersion";
+import UIText, { resultUIText } from "../core/i18n/UIText";
 import CenteredContent from "../components/CenteredContent";
-import { Pm2HttpServerConnection, Pm2LocalIpcConnection } from "../core/Pm2Connection";
 import { ChevronRight, Http, Terminal } from "@mui/icons-material";
 import type { Pm2ConnectionType } from "@/common/types/ComInterface";
+import { Pm2HttpServerConnection, Pm2LocalIpcConnection } from "../core/Pm2Connection";
 import { Box, FormControl, Grid, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
 
 function LocalIpcForm(props: {
@@ -64,6 +64,8 @@ function HttpServerForm(props: {
                 if (res.ok) {
                     navigate("/List");
                     session.pm2Connection = connection;
+                } else {
+                    session.snackbarProvider(resultUIText(res), { variant: "error" });
                 }
             })
             .finally(() => props.lockForm(false));

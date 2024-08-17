@@ -5,14 +5,14 @@ export class OperationResult implements OperationResultType {
     ok = false;
     message = "";
 
-    succeeded(message: UITextKeyOptional) {
+    succeeded(message?: UITextKeyOptional) {
         this.ok = true;
         if (message)
             this.message = message;
         return this;
     }
 
-    failed(message: UITextKeyOptional) {
+    failed(message?: UITextKeyOptional) {
         this.ok = false;
         if (message)
             this.message = message;

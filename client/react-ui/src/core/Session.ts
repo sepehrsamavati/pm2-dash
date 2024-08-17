@@ -1,5 +1,6 @@
 import { createContext, useContext } from "react";
 import type { IPm2Connection } from "../types/pm2Connection";
+import snackbarProvider, { closeSnackbar } from "./helpers/snackbarProvider";
 
 export default class Session {
 
@@ -16,6 +17,9 @@ export default class Session {
         this.refreshUI();
     }
 
+    
+    public readonly snackbarProvider = snackbarProvider;
+    public readonly closeSnackbar = closeSnackbar;
 }
 
 export const SessionContext = createContext({} as Session);

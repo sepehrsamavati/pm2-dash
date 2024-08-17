@@ -1,4 +1,5 @@
-import type { UITextType } from "@/common/types/UIText";
+import type { OperationResultType } from "@/common/types/OperationResult";
+import type { UITextKey, UITextKeyOptional, UITextType } from "@/common/types/UIText";
 
 const UIText = Object.freeze({
     _appTitle: "PM2 GUI",
@@ -25,7 +26,12 @@ const UIText = Object.freeze({
     succeeded: "Succeeded",
     failed: "Failed",
     connectFailed: "Failed to connect!",
-    unknown: "Unknown"
+    unknown: "Unknown",
+    unknownError: "Unknown error"
 } as UITextType);
+
+export const resultUIText = (result: OperationResultType) => UIText[result.message as UITextKey] ?? result.message;
+
+export const optionalKeyToUIT = (key: UITextKeyOptional) => UIText[key as UITextKey] ?? key;
 
 export default UIText;

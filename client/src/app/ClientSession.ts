@@ -17,7 +17,7 @@ export default class ClientSession {
                 result.succeeded();
         } catch (err) {
             console.error(err);
-            result.failed();
+            result.failed("connectFailed");
         }
 
         if (result.ok) {
@@ -42,12 +42,17 @@ export default class ClientSession {
             options.body = JSON.stringify(body);
         }
 
-        const response = await fetch(this.pm2HttpServerBasePath + path, options);
+        try {
+            const response = await fetch(this.pm2HttpServerBasePath + path, options);
 
-        if (response.status === 200) {
-            return await response.json() as OperationResult;
-        } else {
-            return result.failed("Not 200 response");
+            if (response.status === 200) {
+                return await response.json() as OperationResult;
+            } else {
+                return result.failed("Not 200 response");
+            }
+        } catch (err) {
+            console.error(err);
+            return result.failed(err instanceof Error ? ((err.cause as any)?.code ?? "connectFailed") : "connectFailed");
         }
     }
 

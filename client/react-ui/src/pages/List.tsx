@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import ContentContainer from "../components/layout/ContentContainer";
-import type { Pm2ProcessDescription } from "@/common/types/pm2";
-import { Badge, Box, Chip, Divider, Grid, Stack, Switch } from "@mui/material";
+import UIText, { resultUIText } from "../core/i18n/UIText";
 import Button from "../components/Button";
 import { DataGrid } from "@mui/x-data-grid";
-import UIText from "../core/i18n/UIText";
-import { AutoDelete, CheckCircle, DeleteForever, HighlightOff, ReceiptLong, Refresh, RestartAlt, SmsFailed, Stop } from "@mui/icons-material";
+import { useSession } from "../core/Session";
+import type { Pm2ProcessDescription } from "@/common/types/pm2";
+import { useCallback, useEffect, useRef, useState } from "react";
+import ContentContainer from "../components/layout/ContentContainer";
+import { Badge, Box, Chip, Divider, Grid, Stack, Switch } from "@mui/material";
 import { msToHumanReadable, bytesToSize } from "../core/helpers/toHumanReadable";
+import { AutoDelete, CheckCircle, DeleteForever, HighlightOff, ReceiptLong, Refresh, RestartAlt, SmsFailed, Stop } from "@mui/icons-material";
 
 const statusToColor = (status: string) => {
     let color: 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' = "error";
@@ -29,6 +30,7 @@ const statusToColor = (status: string) => {
 };
 
 export default function Index() {
+    const session = useSession();
     const [lastListRefreshResponseTime, setLastListRefreshResponseTime] = useState(0);
     const [autoUpdateList, setAutoUpdateList] = useState(true);
     const isLoadingList = useRef(false);
@@ -49,15 +51,17 @@ export default function Index() {
                 const end = performance.now();
                 setLastListRefreshResponseTime(Math.round(end - start));
 
-                if (res) {
+                if (Array.isArray(res)) {
                     setList(res);
+                } else if (typeof res === "object") {
+                    session.snackbarProvider(resultUIText(res), { variant: "warning" });
                 }
             })
             .finally(() => {
                 isLoadingList.current = false;
                 refreshUI();
             });
-    }, [refreshUI]);
+    }, [refreshUI, session]);
 
     const restart = useCallback((process: Pm2ProcessDescription) => {
         const pmId = process.pmId;
@@ -67,14 +71,16 @@ export default function Index() {
         window.electronAPI
             .pm2.restart(pmId)
             .then(res => {
-
+                if (!res.ok) {
+                    session.snackbarProvider(resultUIText(res), { variant: "error" });
+                }
             })
             .finally(() => {
                 getList();
                 lockedPmIds.current.delete(pmId);
                 // do not refresh ui till next get list
             });
-    }, [refreshUI, getList]);
+    }, [refreshUI, getList, session]);
 
     const stop = useCallback((process: Pm2ProcessDescription) => {
         const pmId = process.pmId;
@@ -84,13 +90,15 @@ export default function Index() {
         window.electronAPI
             .pm2.stop(pmId)
             .then(res => {
-
+                if (!res.ok) {
+                    session.snackbarProvider(resultUIText(res), { variant: "error" });
+                }
             })
             .finally(() => {
                 getList();
                 lockedPmIds.current.delete(pmId);
             });
-    }, [refreshUI, getList]);
+    }, [refreshUI, getList, session]);
 
     const flush = useCallback((process: Pm2ProcessDescription) => {
         const pmId = process.pmId;
@@ -100,13 +108,15 @@ export default function Index() {
         window.electronAPI
             .pm2.flush(pmId)
             .then(res => {
-
+                if (!res.ok) {
+                    session.snackbarProvider(resultUIText(res), { variant: "error" });
+                }
             })
             .finally(() => {
                 lockedPmIds.current.delete(pmId);
                 refreshUI();
             });
-    }, [refreshUI]);
+    }, [refreshUI, session]);
 
     const resetCounter = useCallback((process: Pm2ProcessDescription) => {
         const pmId = process.pmId;
@@ -118,22 +128,27 @@ export default function Index() {
             .then(res => {
                 if (res.ok)
                     getList();
+                else {
+                    session.snackbarProvider(resultUIText(res), { variant: "error" });
+                }
             })
             .finally(() => {
                 lockedPmIds.current.delete(pmId);
                 refreshUI();
             });
-    }, [refreshUI, getList]);
+    }, [refreshUI, getList, session]);
 
     const flushAll = useCallback(() => {
         setDisableActions(true);
         window.electronAPI
             .pm2.flush('')
             .then(res => {
-
+                if (!res.ok) {
+                    session.snackbarProvider(resultUIText(res), { variant: "error" });
+                }
             })
             .finally(() => setDisableActions(false));
-    }, []);
+    }, [session]);
 
     const resetCounterAll = useCallback(() => {
         setDisableActions(true);
@@ -142,9 +157,12 @@ export default function Index() {
             .then(res => {
                 if (res.ok)
                     getList();
+                else {
+                    session.snackbarProvider(resultUIText(res), { variant: "error" });
+                }
             })
             .finally(() => setDisableActions(false));
-    }, [getList]);
+    }, [getList, session]);
 
     useEffect(() => {
         autoUpdateList && getList();
