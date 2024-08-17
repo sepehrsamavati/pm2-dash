@@ -1,9 +1,11 @@
-import Footer from "./Footer";
 import Header from "./Header";
 import { Outlet } from "react-router-dom";
+import { useSession } from "../../core/Session";
 import { Container, CssBaseline } from "@mui/material";
 
 export default function MainLayout() {
+    const session = useSession();
+
     return (
         <>
             <CssBaseline />
@@ -24,11 +26,10 @@ export default function MainLayout() {
                 maxWidth={false}
                 disableGutters
             >
-                <Header />
+                {session.pm2Connection ? <Header /> : null}
                 <main>
                     <Outlet />
                 </main>
-                <Footer />
             </Container>
         </>
     );

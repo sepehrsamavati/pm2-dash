@@ -1,13 +1,13 @@
 const colors = Object.freeze({
-    brand: '#212a36',
-    brandSecondary: '#4f76f1',
+    brand: '#343a40',
+    brandSecondary: '#dc2f02',
 
-    brandDarkMode: '#5b0af8',
+    brandDarkMode: '#f48c06',
 
     error: '#d32f2f',
 
     backgroundLightMode: '#e5e5e5',
-    backgroundDarkMode: '#181e26',
+    backgroundDarkMode: '#0a0908',
     antiFlashWhite: '#f5f5f5',
 
     labels: {

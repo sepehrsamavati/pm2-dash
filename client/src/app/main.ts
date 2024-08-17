@@ -7,6 +7,8 @@ const createWindow = () => {
     const mainWindow = new BrowserWindow({
         width: 1600,
         height: 900,
+        minWidth: 500,
+        minHeight: 600,
         darkTheme: true,
         webPreferences: {
             preload: path.join(__dirname, '..', 'clientPreload.js'),

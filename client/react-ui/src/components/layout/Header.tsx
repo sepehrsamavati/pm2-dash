@@ -1,11 +1,10 @@
+import Button from "../Button";
+import UIText from "../../core/i18n/UIText";
 import { useCallback, useState } from "react";
-import { CancelPresentation, Close } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useSession } from "../../core/Session";
-import constants from "../../core/config/constants";
-import { AppBar as MuiAppBar, Toolbar, Typography, AppBarProps as MuiAppBarProps, styled, Box, IconButton, Stack } from "@mui/material";
-import UIText from "../../core/i18n/UIText";
-import Button from "../Button";
+import { CancelPresentation, Http, Terminal } from "@mui/icons-material";
+import { AppBar as MuiAppBar, Toolbar, AppBarProps as MuiAppBarProps, styled, Stack, Chip, Tooltip } from "@mui/material";
 
 interface AppBarProps extends MuiAppBarProps {
     open?: boolean;
@@ -54,18 +53,24 @@ export default function Header() {
         <AppBar position="fixed">
             <Toolbar>
                 <Stack direction="row" alignItems="center" spacing={2}>
-                    <Typography variant="h6" noWrap component="div">{constants.appTitle}</Typography>
                     {session.pm2Connection ? (
-                        <Box>
-                            {session.pm2Connection.name}
+                        <Stack fontSize={"0.9em"} paddingBlock={1} direction="column" spacing={1} alignItems="start" justifyContent="space-evenly">
+                            <Chip
+                                color={session.pm2Connection.isConnected ? "success" : "error"}
+                                variant={session.pm2Connection.isConnected ? "outlined" : "filled"}
+                                label="Type:"
+                                component="div"
+                                onDelete={() => { }}
+                                deleteIcon={(
+                                    <Tooltip title={session.pm2Connection.name} placement="right">
+                                        {session.pm2Connection.name === "LOCAL_IPC" ? <Terminal /> : <Http />}
+                                    </Tooltip>
+                                )}
+                            />
                             <Button isLoading={isDisconnecting} size="small" disabled={!session.pm2Connection.isConnected} color="error" onClick={disconnect} startIcon={<CancelPresentation />}>{UIText.disconnect}</Button>
-                        </Box>
+                        </Stack>
                     ) : null}
                 </Stack>
-                <Box sx={{ flexGrow: 1 }} />
-                <IconButton color="error" onClick={() => window.electronAPI.closeApp()}>
-                    <Close />
-                </IconButton>
             </Toolbar>
         </AppBar>
     );

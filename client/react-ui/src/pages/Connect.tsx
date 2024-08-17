@@ -22,11 +22,11 @@ function LocalIpcForm(props: {
     const connect = useCallback(() => {
         props.lockForm(true);
         const connection = new Pm2LocalIpcConnection();
-        session.pm2Connection = connection;
         connection.connect()
             .then(res => {
                 if (res.ok) {
                     navigate("/List");
+                    session.pm2Connection = connection;
                 }
             })
             .finally(() => props.lockForm(false));
@@ -59,11 +59,11 @@ function HttpServerForm(props: {
         connection.protocol = protocol as typeof connection.protocol;
         connection.hostname = hostname;
         connection.port = port;
-        session.pm2Connection = connection;
         connection.connect()
             .then(res => {
                 if (res.ok) {
                     navigate("/List");
+                    session.pm2Connection = connection;
                 }
             })
             .finally(() => props.lockForm(false));

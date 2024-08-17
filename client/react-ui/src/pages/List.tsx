@@ -161,14 +161,14 @@ export default function Index() {
                     <Grid container spacing={1} justifyContent="space-between">
                         <Grid item>
                             <Stack direction="row" spacing={1} divider={<Divider orientation="vertical" flexItem />}>
-                                <Button onClick={flushAll} variant="outlined" disabled={disableActions} color="warning">Flush all</Button>
-                                <Button onClick={resetCounterAll} variant="outlined" disabled={disableActions} color="info">Reset restart count</Button>
+                                <Button onClick={flushAll} variant="outlined" disabled={disableActions} color="warning">{UIText.flushAll}</Button>
+                                <Button onClick={resetCounterAll} variant="outlined" disabled={disableActions} color="info">{UIText.resetAll}</Button>
                             </Stack>
                         </Grid>
                         <Grid item>
                             <Stack>
                                 <Box marginBottom={1} paddingInlineStart={1}>
-                                    Auto refresh
+                                    {UIText.autoRefresh}
                                     <Switch
                                         color="info"
                                         checked={autoUpdateList}
@@ -176,7 +176,7 @@ export default function Index() {
                                     />
                                 </Box>
                                 <Badge variant="standard" color="info" showZero={false} badgeContent={lastListRefreshResponseTime && `${lastListRefreshResponseTime}ms`}>
-                                    <Button fullWidth disabled={disableActions || autoUpdateList} isLoading={isLoadingList.current} color="info" variant="outlined" startIcon={<Refresh />} onClick={getList}>Refresh</Button>
+                                    <Button fullWidth disabled={disableActions || autoUpdateList} isLoading={isLoadingList.current} color="info" variant="outlined" startIcon={<Refresh />} onClick={getList}>{UIText.refresh}</Button>
                                 </Badge>
                             </Stack>
                         </Grid>
@@ -192,7 +192,7 @@ export default function Index() {
                         autoHeight
                         paginationMode="client"
                         localeText={{
-                            noRowsLabel: UIText.noContentToShow
+                            noRowsLabel: UIText.noProcessInList
                         }}
                         columns={[
                             {
@@ -241,7 +241,7 @@ export default function Index() {
                                     return <Chip variant="outlined" color={percentUsage > 50 ? "error" : (percentUsage > 10 ? "warning" : "info")} label={ctx.row.usage?.cpu} />;
                                 },
                                 sortable: false,
-                                headerName: 'CPU (%)',
+                                headerName: UIText.cpuPercentage,
                                 minWidth: 100,
                                 align: "center", headerAlign: "center",
                             },
@@ -253,7 +253,7 @@ export default function Index() {
                                     return <Chip variant="outlined" color={ramUsage > 1024e6 ? "error" : (ramUsage > 300e6 ? "warning" : "info")} label={bytesToSize(ramUsage)} />;
                                 },
                                 sortable: false,
-                                headerName: 'RAM (MB)',
+                                headerName: UIText.memoryMegabyteUsage,
                                 minWidth: 150,
                                 align: "center", headerAlign: "center",
                             },
@@ -276,28 +276,28 @@ export default function Index() {
                                             color="success"
                                             startIcon={<RestartAlt />}
                                             onClick={() => restart(ctx.row)}
-                                        >Restart</Button>
+                                        >{UIText.restart}</Button>
                                         <Button
                                             size="small"
                                             disabled={disableActions || lockedPmIds.current.has(ctx.row.pmId)}
                                             color="error"
                                             startIcon={<Stop />}
                                             onClick={() => stop(ctx.row)}
-                                        >Stop</Button>
+                                        >{UIText.stop}</Button>
                                         <Button
                                             size="small"
                                             disabled={disableActions || lockedPmIds.current.has(ctx.row.pmId)}
                                             color="warning"
                                             startIcon={<ReceiptLong />}
                                             onClick={() => flush(ctx.row)}
-                                        >Flush</Button>
+                                        >{UIText.flush}</Button>
                                         <Button
                                             size="small"
                                             disabled={disableActions || lockedPmIds.current.has(ctx.row.pmId)}
                                             color="info"
                                             startIcon={<AutoDelete />}
                                             onClick={() => resetCounter(ctx.row)}
-                                        >Reset</Button>
+                                        >{UIText.reset}</Button>
                                         <Button size="small" disabled={ctx.row.status !== 'stopped' || (disableActions || lockedPmIds.current.has(ctx.row.pmId))} color="error" startIcon={<DeleteForever />}>Delete</Button>
                                     </Stack>
                                 ),
