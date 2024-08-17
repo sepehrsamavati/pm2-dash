@@ -157,7 +157,7 @@ export default function Connect() {
                         padding: "0.3em"
                     }}
                 >{UIText.connectToPm2}</Typography>
-                <Grid container width="100%" spacing={3} marginBlock={2} justifyContent="end">
+                <Grid container spacing={3} marginBlock={2} justifyContent="end">
                     <Grid item xs={12}>
                         <FormControl fullWidth>
                             <InputLabel>{UIText.type}</InputLabel>
