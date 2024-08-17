@@ -27,7 +27,8 @@ function App() {
           <Routes>
             <Route path="/" element={<MainLayout />}>
               <Route path="/" element={<Connect />} />
-              <Route path="/List" element={<List />} />
+              {session.pm2Connection ? <Route path="/List" element={<List />} /> : null}
+              <Route path="*" element={<Connect />} />
             </Route>
           </Routes>
         </BrowserRouter>

@@ -21,6 +21,10 @@ export const initializeIpcHandlers = () => {
         return await clientSession.initHttpConnection(basePath);
     });
 
+    ipcMain.handle('pm2:dispose', async (): ReturnType<ElectronAPI['pm2']['dispose']> => {
+        return await clientSession.dispose();
+    });
+
     ipcMain.handle('pm2:restart', async (_, id: number | string): ReturnType<ElectronAPI['pm2']['restart']> => {
         if (clientSession.connectionType === "HTTP_SERVER") {
             return await clientSession.httpServerRequest("/pm2/restart", "POST", { id });

@@ -132,7 +132,7 @@ class PM2Service {
         });
     }
 
-    async disconnect1() {
+    async disconnect() {
         pm2.disconnect();
     }
 }

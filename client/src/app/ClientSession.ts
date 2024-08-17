@@ -50,4 +50,21 @@ export default class ClientSession {
             return result.failed("Not 200 response");
         }
     }
+
+    async dispose() {
+        const result = new OperationResult();
+
+        try {
+            if (this.connectionType === "LOCAL_IPC") {
+                await this.pm2Service.disconnect();
+            }
+            this.connectionType = "LOCAL_IPC";
+            this.pm2HttpServerBasePath = "";
+            result.succeeded();
+        } catch (err) {
+            return result.failed(err instanceof Error ? err.message : JSON.stringify(err));
+        }
+
+        return result;
+    }
 }

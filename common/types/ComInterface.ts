@@ -1,5 +1,5 @@
-import { OperationResultType } from "./OperationResult";
 import type { Pm2ProcessDescription } from "./pm2";
+import type { OperationResultType } from "./OperationResult";
 
 export type Pm2ConnectionType = 'LOCAL_IPC' | 'HTTP_SERVER';
 
@@ -13,6 +13,7 @@ export type ElectronAPI = {
     pm2: {
         initIpc: () => Promise<OperationResultType>;
         initHttp: (basePath: string) => Promise<OperationResultType>;
+        dispose: () => Promise<OperationResultType>;
 
         restart: (pmId: number | string) => Promise<OperationResultType>;
         stop: (pmId: number | string) => Promise<OperationResultType>;

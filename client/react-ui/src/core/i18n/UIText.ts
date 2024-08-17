@@ -7,6 +7,15 @@ const UIText = Object.freeze({
     protocol: "Protocol",
     hostname: "Hostname",
     connect: "Connect",
+    disconnect: "Disconnect",
+    start: "Start",
+    restart: "Restart",
+    stop: "Stop",
+    flush: "Flush",
+    reset: "Reset",
+    flushAll: "Flush all",
+    resetAll: "Reset restart count",
+    autoRefresh: "Auto refresh",
 });
 
 export default UIText;

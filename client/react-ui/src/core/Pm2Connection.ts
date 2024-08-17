@@ -20,6 +20,15 @@ export class Pm2LocalIpcConnection implements IPm2Connection {
 
         return result;
     }
+
+    async disconnect() {
+        const res = await window.electronAPI.pm2.dispose();
+
+        if (res.ok)
+            this._isConnected = false;
+
+        return res;
+    }
 }
 
 export class Pm2HttpServerConnection implements IPm2Connection {
@@ -43,5 +52,14 @@ export class Pm2HttpServerConnection implements IPm2Connection {
             this._isConnected = true;
 
         return result;
+    }
+
+    async disconnect() {
+        const res = await window.electronAPI.pm2.dispose();
+
+        if (res.ok)
+            this._isConnected = false;
+
+        return res;
     }
 }
