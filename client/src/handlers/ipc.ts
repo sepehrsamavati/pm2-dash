@@ -17,27 +17,47 @@ export const initializeIpcHandlers = () => {
         return await clientSession.pm2Service.connect();
     });
 
-    // ipcMain.handle('pm2:initHttp', async (_, basePath: string): ReturnType<ElectronAPI['pm2']['initHttp']> => {
-    //     clientSession.connectionType = "HTTP_SERVER";
-    // });
+    ipcMain.handle('pm2:initHttp', async (_, basePath: string): ReturnType<ElectronAPI['pm2']['initHttp']> => {
+        return await clientSession.initHttpConnection(basePath);
+    });
 
     ipcMain.handle('pm2:restart', async (_, id: number | string): ReturnType<ElectronAPI['pm2']['restart']> => {
-        return await clientSession.pm2Service.restart(id);
+        if (clientSession.connectionType === "HTTP_SERVER") {
+            return await clientSession.httpServerRequest("/pm2/restart", "POST", { id });
+        } else {
+            return await clientSession.pm2Service.restart(id);
+        }
     });
 
     ipcMain.handle('pm2:stop', async (_, id: number | string): ReturnType<ElectronAPI['pm2']['stop']> => {
-        return await clientSession.pm2Service.stop(id);
+        if (clientSession.connectionType === "HTTP_SERVER") {
+            return await clientSession.httpServerRequest("/pm2/stop", "POST", { id });
+        } else {
+            return await clientSession.pm2Service.stop(id);
+        }
     });
 
     ipcMain.handle('pm2:flush', async (_, id: number | string): ReturnType<ElectronAPI['pm2']['flush']> => {
-        return await clientSession.pm2Service.flush(id);
+        if (clientSession.connectionType === "HTTP_SERVER") {
+            return await clientSession.httpServerRequest("/pm2/flush", "PATCH", { id });
+        } else {
+            return await clientSession.pm2Service.flush(id);
+        }
     });
 
     ipcMain.handle('pm2:resetCounter', async (_, id: number | string): ReturnType<ElectronAPI['pm2']['resetCounter']> => {
-        return await clientSession.pm2Service.reset(id);
+        if (clientSession.connectionType === "HTTP_SERVER") {
+            return await clientSession.httpServerRequest("/pm2/reset", "PATCH", { id });
+        } else {
+            return await clientSession.pm2Service.reset(id);
+        }
     });
 
     ipcMain.handle('pm2:getList', async (): ReturnType<ElectronAPI['pm2']['getList']> => {
-        return await clientSession.pm2Service.list() ?? [];
+        if (clientSession.connectionType === "HTTP_SERVER") {
+            return await clientSession.httpServerRequest("/pm2/list", "GET") as unknown as [];
+        } else {
+            return await clientSession.pm2Service.list() ?? [];
+        }
     });
 };

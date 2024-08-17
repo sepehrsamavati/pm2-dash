@@ -3,6 +3,10 @@ import type { Pm2ProcessDescription } from "./pm2";
 
 export type Pm2ConnectionType = 'LOCAL_IPC' | 'HTTP_SERVER';
 
+export type TargetProcess = {
+    id: number | string
+};
+
 export type ElectronAPI = {
     clientReady: () => void;
     closeApp: () => void;

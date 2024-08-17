@@ -37,6 +37,11 @@ export class Pm2HttpServerConnection implements IPm2Connection {
     port = '80';
 
     async connect(): Promise<OperationResultType> {
-        throw new Error("Method not implemented.");
+        const result = await window.electronAPI.pm2.initHttp(`${this.protocol}://${this.hostname}:${this.port}`);
+
+        if (result.ok)
+            this._isConnected = true;
+
+        return result;
     }
 }

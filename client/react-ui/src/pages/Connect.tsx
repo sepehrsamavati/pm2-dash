@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import constants from "../core/config/constants";
 import AppVersion from "../components/AppVersion";
 import CenteredContent from "../components/CenteredContent";
-import { Pm2LocalIpcConnection } from "../core/Pm2Connection";
+import { Pm2HttpServerConnection, Pm2LocalIpcConnection } from "../core/Pm2Connection";
 import { ChevronRight, Http, Terminal } from "@mui/icons-material";
 import type { Pm2ConnectionType } from "@/common/types/ComInterface";
 import { Box, FormControl, Grid, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
@@ -47,9 +47,27 @@ function HttpServerForm(props: {
     isLoading: boolean;
     lockForm: (lock: boolean) => void;
 }) {
+    const session = useSession();
+    const navigate = useNavigate();
     const [protocol, setProtocol] = useState("http");
     const [hostname, setHostname] = useState("localhost");
     const [port, setPort] = useState("80");
+
+    const connect = useCallback(() => {
+        props.lockForm(true);
+        const connection = new Pm2HttpServerConnection();
+        connection.protocol = protocol as typeof connection.protocol;
+        connection.hostname = hostname;
+        connection.port = port;
+        session.pm2Connection = connection;
+        connection.connect()
+            .then(res => {
+                if (res.ok) {
+                    navigate("/List");
+                }
+            })
+            .finally(() => props.lockForm(false));
+    }, [props, session, navigate, protocol, hostname, port]);
 
     return (
         <Grid container spacing={1}>
@@ -107,7 +125,7 @@ function HttpServerForm(props: {
                 />
             </Grid>
             <Grid item>
-                <Button color="success" isLoading={props.isLoading} startIcon={<ChevronRight />} endIcon={<Http />} onClick={() => props.lockForm(true)}>{UIText.connect}</Button>
+                <Button color="success" isLoading={props.isLoading} startIcon={<ChevronRight />} endIcon={<Http />} onClick={connect}>{UIText.connect}</Button>
             </Grid>
         </Grid>
     );
