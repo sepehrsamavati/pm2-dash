@@ -1,5 +1,6 @@
 import Fastify from 'fastify'
 import PM2Service from '../../common/services/pm2';
+import { jwtRequestGuard } from './middlewares/jwt';
 import type { TargetProcess } from '../../common/types/ComInterface';
 
 const pm2Service = new PM2Service();
@@ -10,7 +11,9 @@ const fastify = Fastify({
     logger: true,
 });
 
-fastify.register((instance, opts, next) => {
+fastify.addHook("onRequest", jwtRequestGuard);
+
+fastify.register((instance, _, next) => {
     instance.get("/", () => {
         return {
             ok: true

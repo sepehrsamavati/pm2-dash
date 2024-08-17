@@ -11,7 +11,11 @@ export default class ClientSession {
         const result = new OperationResult();
 
         try {
-            const response = await fetch(basePath + "/pm2");
+            const response = await fetch(basePath + "/pm2", {
+                headers: {
+                    "AccessToken": "not implemented"
+                }
+            });
             const res = await response.json();
             if (res.ok === true)
                 result.succeeded();
@@ -32,11 +36,15 @@ export default class ClientSession {
         const result = new OperationResult();
 
         const options: RequestInit = {
-            method
+            method,
+            headers: {
+                "AccessToken": "not implemented"
+            }
         };
 
         if (body) {
             options.headers = {
+                ...options.headers,
                 'Content-Type': 'application/json'
             };
             options.body = JSON.stringify(body);

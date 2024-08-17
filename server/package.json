@@ -4,16 +4,21 @@
   "description": "",
   "scripts": {
     "build": "tsc",
-    "start": "node ./build/server/src/app.js"
+    "start": "node ./build/server/src/app.js",
+    "token": "node ./build/server/src/scripts/generateToken.js",
+    "secret": "node -e console.log(require('crypto').randomBytes(48).toString('hex'))"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^16.4.5",
     "fastify": "^4.28.1",
+    "jsonwebtoken": "^9.0.2",
     "pm2": "^5.4.2"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.6",
     "typescript": "^5.5.4"
   }
 }
