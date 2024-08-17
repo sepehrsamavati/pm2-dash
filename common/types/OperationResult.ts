@@ -1,6 +1,8 @@
+import type { UITextKeyOptional } from "./UIText";
+
 export type OperationResultType = {
     ok: boolean;
-    message: string;
+    message: UITextKeyOptional;
 }
 
 export type OperationResultWithDataType<T> = OperationResultType & {

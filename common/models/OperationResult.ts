@@ -1,17 +1,18 @@
+import type { UITextKeyOptional } from "../types/UIText";
 import type { OperationResultType, OperationResultWithDataType } from "../types/OperationResult";
 
 export class OperationResult implements OperationResultType {
     ok = false;
     message = "";
 
-    succeeded(message = "Operation succeeded") {
+    succeeded(message: UITextKeyOptional) {
         this.ok = true;
         if (message)
             this.message = message;
         return this;
     }
 
-    failed(message = "Operation failed") {
+    failed(message: UITextKeyOptional) {
         this.ok = false;
         if (message)
             this.message = message;
