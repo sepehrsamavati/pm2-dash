@@ -1,5 +1,5 @@
 
-import type { ElectronAPI } from "@/common/types";
+import type { ElectronAPI } from "@/common/types/ComInterface";
 
 declare global {
     interface Window {

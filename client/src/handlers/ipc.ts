@@ -1,6 +1,6 @@
 import { ipcMain } from "electron";
 import ClientSession from "../app/ClientSession";
-import type { ElectronAPI } from "common/types";
+import type { ElectronAPI } from "../../../common/types/ComInterface";
 
 let initialized = false;
 let clientSession = new ClientSession();

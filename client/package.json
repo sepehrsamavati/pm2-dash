@@ -2,7 +2,7 @@
   "name": "pm2-gui",
   "version": "0.1.0",
   "description": "",
-  "main": "./build/app/main.js",
+  "main": "./build/client/src/app/main.js",
   "scripts": {
     "start": "electron .",
     "build": "tsc"
@@ -16,7 +16,6 @@
     "typescript": "^5.5.4"
   },
   "dependencies": {
-    "pm2": "^5.4.2",
-    "common": "workspace:common"
+    "pm2": "^5.4.2"
   }
 }

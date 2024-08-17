@@ -1,6 +1,6 @@
 import pm2 from "pm2";
-import { OperationResult } from "common/models";
-import type { Pm2ProcessDescription } from "common/types";
+import type { Pm2ProcessDescription } from "../../../common/types/pm2";
+import { OperationResult } from "../../../common/models/OperationResult";
 
 const logger = console;
 

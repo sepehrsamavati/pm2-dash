@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import ContentContainer from "../components/layout/ContentContainer";
-import type { Pm2ProcessDescription } from "@/common/types";
+import type { Pm2ProcessDescription } from "@/common/types/pm2";
 import { Badge, Box, Chip, Divider, Grid, Stack, Switch } from "@mui/material";
 import Button from "../components/Button";
 import { DataGrid } from "@mui/x-data-grid";

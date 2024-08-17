@@ -1,4 +1,5 @@
-import type { Pm2ConnectionType, OperationResultType } from "@/common/types";
+import type { Pm2ConnectionType } from "@/common/types/ComInterface";
+import type { OperationResultType } from "@/common/types/OperationResult";
 
 export type IPm2Connection = {
     connect(): Promise<OperationResultType>;
