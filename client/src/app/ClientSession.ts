@@ -1,4 +1,4 @@
-import PM2Service from "../services/pm2";
+import PM2Service from "../../../common/services/pm2";
 import type { Pm2ConnectionType } from "../../../common/types/ComInterface";
 
 export default class ClientSession {
