@@ -29,7 +29,7 @@ export class Pm2HttpServerConnection implements IPm2Connection {
     }
 
     get name(): Pm2ConnectionType {
-        return "LOCAL_IPC";
+        return "HTTP_SERVER";
     }
 
     protocol: 'http' | 'https' = 'http';
