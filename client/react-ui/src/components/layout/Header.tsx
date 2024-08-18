@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSession } from "../../core/Session";
 import { CancelPresentation, Http, Terminal } from "@mui/icons-material";
-import { AppBar as MuiAppBar, Toolbar, AppBarProps as MuiAppBarProps, styled, Stack, Chip, Tooltip } from "@mui/material";
+import { AppBar as MuiAppBar, Toolbar, AppBarProps as MuiAppBarProps, styled, Stack, Chip, Tooltip, Box, Switch } from "@mui/material";
 
 interface AppBarProps extends MuiAppBarProps {
     open?: boolean;
@@ -71,6 +71,18 @@ export default function Header() {
                         </Stack>
                     ) : null}
                 </Stack>
+                <Box sx={{ flexGrow: 1 }} />
+                <Box>
+                    {UIText.readonlyMode}
+                    <Switch
+                        color="success"
+                        checked={session.readonlyMode}
+                        onClick={() => {
+                            session.readonlyMode = !session.readonlyMode;
+                            session.refreshUI();
+                        }}
+                    />
+                </Box>
             </Toolbar>
         </AppBar>
     );

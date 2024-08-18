@@ -19,6 +19,8 @@ export default class Session {
         this.refreshUI();
     }
 
+    public readonlyMode = true;
+
 
     public readonly snackbarProvider = snackbarProvider;
     public readonly closeSnackbar = closeSnackbar;

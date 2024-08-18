@@ -207,8 +207,8 @@ export default function Index() {
                     <Grid container spacing={1} justifyContent="space-between">
                         <Grid item>
                             <Stack direction="row" spacing={1} divider={<Divider orientation="vertical" flexItem />}>
-                                <Button onClick={flushAll} variant="outlined" disabled={disableActions} color="warning">{UIText.flushAll}</Button>
-                                <Button onClick={resetCounterAll} variant="outlined" disabled={disableActions} color="info">{UIText.resetAll}</Button>
+                                <Button onClick={flushAll} variant="outlined" disabled={session.readonlyMode || disableActions} color="warning">{UIText.flushAll}</Button>
+                                <Button onClick={resetCounterAll} variant="outlined" disabled={session.readonlyMode || disableActions} color="info">{UIText.resetAll}</Button>
                             </Stack>
                         </Grid>
                         <Grid item>
@@ -325,14 +325,14 @@ export default function Index() {
                                     <Stack gap={1} direction="row" padding={1} justifyContent="center">
                                         <Button
                                             size="small"
-                                            disabled={disableActions || lockedPmIds.current.has(ctx.row.pmId)}
+                                            disabled={session.readonlyMode || disableActions || lockedPmIds.current.has(ctx.row.pmId)}
                                             color="success"
                                             startIcon={<RestartAlt />}
                                             onClick={() => restart(ctx.row)}
                                         >{UIText.restart}</Button>
                                         <Button
                                             size="small"
-                                            disabled={disableActions || lockedPmIds.current.has(ctx.row.pmId)}
+                                            disabled={session.readonlyMode || disableActions || lockedPmIds.current.has(ctx.row.pmId)}
                                             color="error"
                                             startIcon={<Stop />}
                                             onClick={() => stop(ctx.row)}
@@ -357,22 +357,26 @@ export default function Index() {
                                         >Err</Button>
                                         <Button
                                             size="small"
-                                            disabled={disableActions || lockedPmIds.current.has(ctx.row.pmId)}
+                                            disabled={session.readonlyMode || disableActions || lockedPmIds.current.has(ctx.row.pmId)}
                                             color="warning"
                                             startIcon={<ReceiptLong />}
                                             onClick={() => flush(ctx.row)}
                                         >{UIText.flush}</Button>
                                         <Button
                                             size="small"
-                                            disabled={disableActions || lockedPmIds.current.has(ctx.row.pmId)}
+                                            disabled={session.readonlyMode || disableActions || lockedPmIds.current.has(ctx.row.pmId)}
                                             color="info"
                                             startIcon={<AutoDelete />}
                                             onClick={() => resetCounter(ctx.row)}
                                         >{UIText.reset}</Button>
-                                        <Button size="small" disabled={ctx.row.status !== 'stopped' || (disableActions || lockedPmIds.current.has(ctx.row.pmId))} color="error" startIcon={<DeleteForever />}>Delete</Button>
+                                        <Button
+                                            size="small"
+                                            disabled={session.readonlyMode || ctx.row.status !== 'stopped' || (disableActions || lockedPmIds.current.has(ctx.row.pmId))}
+                                            color="error"
+                                            startIcon={<DeleteForever />}
+                                        >Delete</Button>
                                     </Stack>
                                 ),
-                                // headerName: "UIText",
                                 align: "center", headerAlign: "center",
                             }
                         ]}

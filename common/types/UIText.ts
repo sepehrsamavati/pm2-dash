@@ -28,7 +28,8 @@ const keys = [
     "invalidToken",
     "history",
     "clear",
-    "log"
+    "log",
+    "readonlyMode"
 ] as const;
 
 export type UITextKey = typeof keys[number];
