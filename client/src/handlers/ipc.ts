@@ -1,6 +1,10 @@
-import { ipcMain } from "electron";
+import fs from "node:fs";
+import { Readable } from "node:stream";
+import { ipcMain, dialog } from "electron";
+import { finished } from "node:stream/promises";
 import ClientSession from "../app/ClientSession";
 import type { ElectronAPI } from "../../../common/types/ComInterface";
+import { OperationResult } from "../../../common/models/OperationResult";
 
 let initialized = false;
 let clientSession = new ClientSession();
@@ -63,5 +67,45 @@ export const initializeIpcHandlers = () => {
         } else {
             return await clientSession.pm2Service.list() ?? [];
         }
+    });
+
+    ipcMain.handle('pm2:getLogFile', async (_, id: number | string): ReturnType<ElectronAPI['pm2']['getLogFile']> => {
+        const result = new OperationResult();
+
+        const saveLocation = await dialog.showSaveDialog({
+            title: "PM2 application log",
+            filters: [
+                { name: "All Files", extensions: ["*"] },
+                { name: "Text", extensions: ["txt"] }
+            ]
+        });
+
+        if (!saveLocation.canceled && saveLocation.filePath) {
+            if (clientSession.connectionType === "HTTP_SERVER") {
+                try {
+                    const response = await clientSession.initHttpServerRequest(`/pm2/outFilePath?id=${id}`, "GET");
+
+                    const dest = fs.createWriteStream(saveLocation.filePath);
+                    if (response.body) {
+                        await finished(
+                            Readable.fromWeb(response.body as any).pipe(dest)
+                        );
+                        return result.succeeded();
+                    }
+                } catch {
+                    return result.failed("downloadFailed");
+                }
+
+            } else {
+                const filePath = await clientSession.pm2Service.getLogPath(id, "out");
+                if (filePath) {
+                    try {
+                        await fs.promises.copyFile(filePath, saveLocation.filePath);
+                    } catch { }
+                }
+            }
+        }
+
+        return result.failed();
     });
 };

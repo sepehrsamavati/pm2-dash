@@ -20,5 +20,7 @@ export type ElectronAPI = {
         flush: (pmId: number | string) => Promise<OperationResultType>;
         resetCounter: (pmId: number | string) => Promise<OperationResultType>;
         getList: () => Promise<Pm2ProcessDescription[]>;
+
+        getLogFile: (pmId: number | string) => Promise<unknown>;
     };
 }

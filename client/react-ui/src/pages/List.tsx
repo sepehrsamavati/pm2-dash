@@ -7,7 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import ContentContainer from "../components/layout/ContentContainer";
 import { Badge, Box, Chip, Divider, Grid, Stack, Switch } from "@mui/material";
 import { msToHumanReadable, bytesToSize } from "../core/helpers/toHumanReadable";
-import { AutoDelete, CheckCircle, DeleteForever, HighlightOff, ReceiptLong, Refresh, RestartAlt, SmsFailed, Stop } from "@mui/icons-material";
+import { AutoDelete, CheckCircle, DeleteForever, HighlightOff, ReceiptLong, Refresh, RestartAlt, Save, SmsFailed, Stop } from "@mui/icons-material";
 
 const statusToColor = (status: string) => {
     let color: 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' = "error";
@@ -37,6 +37,7 @@ export default function Index() {
     const [disableActions, setDisableActions] = useState(false);
     const [list, setList] = useState<Pm2ProcessDescription[]>();
     const lockedPmIds = useRef<Set<Pm2ProcessDescription['pmId']>>(new Set());
+    const downloadingLogPmIds = useRef<Set<Pm2ProcessDescription['pmId']>>(new Set());
     const [, setDummy] = useState(0);
     const refreshUI = useCallback(() => setDummy(current => current + 1), []);
 
@@ -164,6 +165,22 @@ export default function Index() {
             .finally(() => setDisableActions(false));
     }, [getList, session]);
 
+    const downloadLogFile = useCallback((process: Pm2ProcessDescription) => {
+        const pmId = process.pmId;
+        if (downloadingLogPmIds.current.has(pmId)) return;
+        downloadingLogPmIds.current.add(pmId);
+        refreshUI();
+        window.electronAPI
+            .pm2.getLogFile(pmId)
+            .then(res => {
+                console.log(res)
+            })
+            .finally(() => {
+                downloadingLogPmIds.current.delete(pmId);
+                refreshUI();
+            });
+    }, [refreshUI]);
+
     useEffect(() => {
         autoUpdateList && getList();
         const timer = setInterval(() => autoUpdateList && getList(), 5e3);
@@ -285,7 +302,7 @@ export default function Index() {
                             {
                                 field: 'operation' as keyof Pm2ProcessDescription,
                                 sortable: false,
-                                minWidth: 500,
+                                minWidth: 650,
                                 renderCell: ctx => (
                                     <Stack gap={1} direction="row" padding={1} justifyContent="center">
                                         <Button
@@ -302,6 +319,24 @@ export default function Index() {
                                             startIcon={<Stop />}
                                             onClick={() => stop(ctx.row)}
                                         >{UIText.stop}</Button>
+                                        <Button
+                                            size="small"
+                                            isLoading={downloadingLogPmIds.current.has(ctx.row.pmId)}
+                                            disabled={disableActions}
+                                            color="info"
+                                            variant="outlined"
+                                            startIcon={<Save />}
+                                            onClick={() => downloadLogFile(ctx.row)}
+                                        >Out</Button>
+                                        <Button
+                                            size="small"
+                                            isLoading={downloadingLogPmIds.current.has(ctx.row.pmId)}
+                                            disabled={disableActions}
+                                            color="warning"
+                                            variant="outlined"
+                                            startIcon={<Save />}
+                                            onClick={() => downloadLogFile(ctx.row)}
+                                        >Err</Button>
                                         <Button
                                             size="small"
                                             disabled={disableActions || lockedPmIds.current.has(ctx.row.pmId)}

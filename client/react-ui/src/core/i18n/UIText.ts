@@ -32,6 +32,7 @@ const UIText = Object.freeze({
     invalidToken: "Invalid token!",
     history: "History",
     clear: "Clear",
+    log: "Log"
 } as UITextType);
 
 export const resultUIText = (result: OperationResultType) => UIText[result.message as UITextKey] ?? result.message;

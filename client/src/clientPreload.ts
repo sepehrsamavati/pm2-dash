@@ -13,5 +13,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
         flush: (pmId: number | string) => ipcRenderer.invoke('pm2:flush', pmId),
         resetCounter: (pmId: number | string) => ipcRenderer.invoke('pm2:resetCounter', pmId),
         getList: () => ipcRenderer.invoke('pm2:getList'),
+        getLogFile: (pmId: number | string) => ipcRenderer.invoke('pm2:getLogFile', pmId),
     }
 } satisfies ElectronAPI);

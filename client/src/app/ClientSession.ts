@@ -28,9 +28,7 @@ export default class ClientSession {
         return result;
     }
 
-    async httpServerRequest(path: string, method: string, body?: TargetProcess) {
-        const result = new OperationResult();
-
+    initHttpServerRequest(path: string, method: string, body?: unknown) {
         const options: RequestInit = {
             method,
             headers: {
@@ -46,8 +44,14 @@ export default class ClientSession {
             options.body = JSON.stringify(body);
         }
 
+        return fetch(this.pm2HttpServerBasePath + path, options);
+    }
+
+    async httpServerRequest(path: string, method: string, body?: TargetProcess) {
+        const result = new OperationResult();
+
         try {
-            const response = await fetch(this.pm2HttpServerBasePath + path, options);
+            const response = await this.initHttpServerRequest(path, method, body);
 
             if (response.status === 200) {
                 return await response.json() as OperationResult;

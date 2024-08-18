@@ -1,4 +1,5 @@
-import Fastify from 'fastify'
+import Fastify from 'fastify';
+import fs from 'node:fs/promises';
 import PM2Service from '../../common/services/pm2';
 import { jwtRequestGuard } from './middlewares/jwt';
 import type { TargetProcess } from '../../common/types/ComInterface';
@@ -42,6 +43,24 @@ fastify.register((instance, _, next) => {
     instance.patch("/reset", async (req) => {
         const body = req.body as TargetProcess;
         return await pm2Service.reset(body.id);
+    });
+
+    instance.get("/outFilePath", async (req, reply) => {
+        const body = req.query as TargetProcess;
+        const path = await pm2Service.getLogPath(body.id, "out");
+        if (path)
+            return await fs.readFile(path);
+        else
+            return reply.status(404);
+    });
+
+    instance.get("/errFilePath", async (req, reply) => {
+        const body = req.query as TargetProcess;
+        const path = await pm2Service.getLogPath(body.id, "err");
+        if (path)
+            return await fs.readFile(path);
+        else
+            return reply.status(404);
     });
 
     next();
