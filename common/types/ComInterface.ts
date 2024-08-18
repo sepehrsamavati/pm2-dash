@@ -12,7 +12,7 @@ export type ElectronAPI = {
     closeApp: () => void;
     pm2: {
         initIpc: () => Promise<OperationResultType>;
-        initHttp: (basePath: string) => Promise<OperationResultType>;
+        initHttp: (args: { basePath: string; accessToken: string }) => Promise<OperationResultType>;
         dispose: () => Promise<OperationResultType>;
 
         restart: (pmId: number | string) => Promise<OperationResultType>;

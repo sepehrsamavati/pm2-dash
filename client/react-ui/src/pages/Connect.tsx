@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Button from "../components/Button";
 import colors from "../core/config/colors";
 import { useSession } from "../core/Session";
@@ -7,10 +7,11 @@ import constants from "../core/config/constants";
 import AppVersion from "../components/AppVersion";
 import UIText, { resultUIText } from "../core/i18n/UIText";
 import CenteredContent from "../components/CenteredContent";
-import { ChevronRight, Http, Terminal } from "@mui/icons-material";
+import { ChevronRight, ClearAll, Http, Terminal } from "@mui/icons-material";
 import type { Pm2ConnectionType } from "@/common/types/ComInterface";
 import { Pm2HttpServerConnection, Pm2LocalIpcConnection } from "../core/Pm2Connection";
 import { Box, FormControl, Grid, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
+import { upsertTargetServer } from "../core/helpers/connectionHistory";
 
 function LocalIpcForm(props: {
     isLoading: boolean;
@@ -49,34 +50,109 @@ function HttpServerForm(props: {
 }) {
     const session = useSession();
     const navigate = useNavigate();
-    const [protocol, setProtocol] = useState("http");
-    const [hostname, setHostname] = useState("localhost");
-    const [port, setPort] = useState("80");
+    const defaultTargetServer = useMemo(() => {
+        const history = session.localStorage.data.history;
+
+        let protocol = "http", hostname = "localhost", port = "80", accessToken = "";
+
+        try {
+            const server = history.at(history.length - 1);
+            if (server) {
+                const url = new URL(server.baseUrl);
+                protocol = url.protocol.split(':')[0];
+                hostname = url.hostname;
+                port = url.port || "80";
+                accessToken = server.accessToken;
+            }
+        } catch {
+            session.localStorage.data.history = [];
+            session.localStorage.rewrite();
+        }
+
+        return {
+            protocol, hostname, port, accessToken
+        };
+    }, [session]);
+    const [accessToken, setAccessToken] = useState(defaultTargetServer.accessToken);
+    const [protocol, setProtocol] = useState(defaultTargetServer.protocol);
+    const [hostname, setHostname] = useState(defaultTargetServer.hostname);
+    const [port, setPort] = useState(defaultTargetServer.port);
 
     const connect = useCallback(() => {
         props.lockForm(true);
         const connection = new Pm2HttpServerConnection();
+
         connection.protocol = protocol as typeof connection.protocol;
         connection.hostname = hostname;
         connection.port = port;
+        connection.accessToken = accessToken;
+
         connection.connect()
             .then(res => {
                 if (res.ok) {
                     navigate("/List");
+                    session.localStorage.data.history = upsertTargetServer(session.localStorage.data.history, {
+                        baseUrl: `${protocol}://${hostname}:${port}`,
+                        accessToken
+                    });
+                    session.localStorage.rewrite();
                     session.pm2Connection = connection;
                 } else {
                     session.snackbarProvider(resultUIText(res), { variant: "error" });
                 }
             })
             .finally(() => props.lockForm(false));
-    }, [props, session, navigate, protocol, hostname, port]);
+    }, [props, session, navigate, protocol, hostname, port, accessToken]);
 
     return (
-        <Grid container spacing={1}>
+        <Grid container spacing={2}>
+            {session.localStorage.data.history.length > 0 ? (
+                <>
+                    <Grid item xs={8}>
+                        <FormControl fullWidth>
+                            <InputLabel>{UIText.history}</InputLabel>
+                            <Select
+                                fullWidth
+                                label={UIText.history}
+                                disabled={props.isLoading}
+                                onChange={e => {
+                                    const index = Number.parseInt(e.target.value as string);
+                                    const item = session.localStorage.data.history.at(index);
+                                    if (item) {
+                                        try {
+                                            const url = new URL(item.baseUrl);
+                                            setProtocol(url.protocol.split(':')[0]);
+                                            setHostname(url.hostname);
+                                            setPort(url.port || "80");
+                                            setAccessToken(item.accessToken);
+                                        } catch { }
+                                    }
+                                }}
+                            >
+                                {session.localStorage.data.history.map((item, index) => <MenuItem key={index} value={index}>{item.baseUrl}</MenuItem>)}
+                            </Select>
+                        </FormControl>
+                    </Grid>
+                    <Grid item xs={4} marginBlock="auto">
+                        <Button
+                            fullWidth
+                            size="large"
+                            variant="outlined"
+                            startIcon={<ClearAll />}
+                            onClick={() => {
+                                session.localStorage.data.history = [];
+                                session.localStorage.rewrite();
+                                session.refreshUI();
+                            }}
+                            color="warning">{UIText.clear}</Button>
+                    </Grid>
+                </>
+            ) : null}
             <Grid item xs={12} md={6}>
                 <FormControl fullWidth>
                     <InputLabel>{UIText.protocol}</InputLabel>
                     <Select
+                        fullWidth
                         value={protocol}
                         label={UIText.protocol}
                         disabled={props.isLoading}
@@ -124,6 +200,15 @@ function HttpServerForm(props: {
 
                         setHostname(_hostname);
                     }}
+                />
+            </Grid>
+            <Grid item xs={12}>
+                <TextField
+                    fullWidth
+                    value={accessToken}
+                    label={UIText.token}
+                    disabled={props.isLoading}
+                    onChange={e => setAccessToken(e.target.value)}
                 />
             </Grid>
             <Grid item>

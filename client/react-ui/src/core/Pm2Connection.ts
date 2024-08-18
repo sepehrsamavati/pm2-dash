@@ -44,9 +44,13 @@ export class Pm2HttpServerConnection implements IPm2Connection {
     protocol: 'http' | 'https' = 'http';
     hostname = 'localhost';
     port = '80';
+    accessToken = "";
 
     async connect(): Promise<OperationResultType> {
-        const result = await window.electronAPI.pm2.initHttp(`${this.protocol}://${this.hostname}:${this.port}`);
+        const result = await window.electronAPI.pm2.initHttp({
+            basePath: `${this.protocol}://${this.hostname}:${this.port}`,
+            accessToken: this.accessToken
+        });
 
         if (result.ok)
             this._isConnected = true;

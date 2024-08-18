@@ -17,8 +17,8 @@ export const initializeIpcHandlers = () => {
         return await clientSession.pm2Service.connect();
     });
 
-    ipcMain.handle('pm2:initHttp', async (_, basePath: string): ReturnType<ElectronAPI['pm2']['initHttp']> => {
-        return await clientSession.initHttpConnection(basePath);
+    ipcMain.handle('pm2:initHttp', async (_, targetServer: Parameters<ElectronAPI['pm2']['initHttp']>[0]): ReturnType<ElectronAPI['pm2']['initHttp']> => {
+        return await clientSession.initHttpConnection(targetServer.basePath, targetServer.accessToken);
     });
 
     ipcMain.handle('pm2:dispose', async (): ReturnType<ElectronAPI['pm2']['dispose']> => {

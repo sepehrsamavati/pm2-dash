@@ -6,27 +6,23 @@ export default class ClientSession {
     connectionType: Pm2ConnectionType = "LOCAL_IPC";
     pm2Service = new PM2Service();
     pm2HttpServerBasePath = "";
+    pm2HttpServerAccessToken = "";
 
-    async initHttpConnection(basePath: string) {
+    async initHttpConnection(basePath: string, accessToken: string) {
         const result = new OperationResult();
 
-        try {
-            const response = await fetch(basePath + "/pm2", {
-                headers: {
-                    "AccessToken": "not implemented"
-                }
-            });
-            const res = await response.json();
-            if (res.ok === true)
-                result.succeeded();
-        } catch (err) {
-            console.error(err);
-            result.failed("connectFailed");
-        }
 
-        if (result.ok) {
-            this.pm2HttpServerBasePath = basePath;
-            this.connectionType = "HTTP_SERVER";
+        this.pm2HttpServerBasePath = basePath;
+        this.pm2HttpServerAccessToken = accessToken;
+        this.connectionType = "HTTP_SERVER";
+        const res = await this.httpServerRequest("/pm2", "GET");
+
+
+        if (res.ok) {
+            result.succeeded();
+        } else {
+            this.cleanup();
+            result.failed(res?.message ?? "connectFailed");
         }
 
         return result;
@@ -38,7 +34,7 @@ export default class ClientSession {
         const options: RequestInit = {
             method,
             headers: {
-                "AccessToken": "not implemented"
+                "AccessToken": this.pm2HttpServerAccessToken
             }
         };
 
@@ -55,6 +51,8 @@ export default class ClientSession {
 
             if (response.status === 200) {
                 return await response.json() as OperationResult;
+            } else if (response.status === 401) {
+                return result.failed("invalidToken");
             } else {
                 return result.failed("Not 200 response");
             }
@@ -64,6 +62,12 @@ export default class ClientSession {
         }
     }
 
+    private cleanup() {
+        this.connectionType = "LOCAL_IPC";
+        this.pm2HttpServerBasePath = "";
+        this.pm2HttpServerAccessToken = "";
+    }
+
     async dispose() {
         const result = new OperationResult();
 
@@ -71,8 +75,9 @@ export default class ClientSession {
             if (this.connectionType === "LOCAL_IPC") {
                 await this.pm2Service.disconnect();
             }
-            this.connectionType = "LOCAL_IPC";
-            this.pm2HttpServerBasePath = "";
+
+            this.cleanup();
+
             result.succeeded();
         } catch (err) {
             return result.failed(err instanceof Error ? err.message : JSON.stringify(err));

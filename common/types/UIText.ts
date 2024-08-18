@@ -24,6 +24,10 @@ const keys = [
     "connectFailed",
     "unknown",
     "unknownError",
+    "token",
+    "invalidToken",
+    "history",
+    "clear"
 ] as const;
 
 export type UITextKey = typeof keys[number];

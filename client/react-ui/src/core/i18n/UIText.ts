@@ -27,7 +27,11 @@ const UIText = Object.freeze({
     failed: "Failed",
     connectFailed: "Failed to connect!",
     unknown: "Unknown",
-    unknownError: "Unknown error"
+    unknownError: "Unknown error",
+    token: "Token",
+    invalidToken: "Invalid token!",
+    history: "History",
+    clear: "Clear",
 } as UITextType);
 
 export const resultUIText = (result: OperationResultType) => UIText[result.message as UITextKey] ?? result.message;

@@ -6,7 +6,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     closeApp: () => ipcRenderer.send('closeApp'),
     pm2: {
         initIpc: () => ipcRenderer.invoke('pm2:initIpc'),
-        initHttp: (basePath: string) => ipcRenderer.invoke('pm2:initHttp', basePath),
+        initHttp: (targetServer) => ipcRenderer.invoke('pm2:initHttp', targetServer),
         dispose: () => ipcRenderer.invoke('pm2:dispose'),
         restart: (pmId: number | string) => ipcRenderer.invoke('pm2:restart', pmId),
         stop: (pmId: number | string) => ipcRenderer.invoke('pm2:stop', pmId),
