@@ -165,13 +165,13 @@ export default function Index() {
             .finally(() => setDisableActions(false));
     }, [getList, session]);
 
-    const downloadLogFile = useCallback((process: Pm2ProcessDescription) => {
+    const downloadLogFile = useCallback((process: Pm2ProcessDescription, type: "out" | "err") => {
         const pmId = process.pmId;
         if (downloadingLogPmIds.current.has(pmId)) return;
         downloadingLogPmIds.current.add(pmId);
         refreshUI();
         window.electronAPI
-            .pm2.getLogFile(pmId)
+            .pm2.getLogFile({ pmId, type })
             .then(res => {
                 console.log(res)
             })
@@ -326,7 +326,7 @@ export default function Index() {
                                             color="info"
                                             variant="outlined"
                                             startIcon={<Save />}
-                                            onClick={() => downloadLogFile(ctx.row)}
+                                            onClick={() => downloadLogFile(ctx.row, "out")}
                                         >Out</Button>
                                         <Button
                                             size="small"
@@ -335,7 +335,7 @@ export default function Index() {
                                             color="warning"
                                             variant="outlined"
                                             startIcon={<Save />}
-                                            onClick={() => downloadLogFile(ctx.row)}
+                                            onClick={() => downloadLogFile(ctx.row, "err")}
                                         >Err</Button>
                                         <Button
                                             size="small"

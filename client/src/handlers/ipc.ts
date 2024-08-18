@@ -69,7 +69,7 @@ export const initializeIpcHandlers = () => {
         }
     });
 
-    ipcMain.handle('pm2:getLogFile', async (_, id: number | string): ReturnType<ElectronAPI['pm2']['getLogFile']> => {
+    ipcMain.handle('pm2:getLogFile', async (_, args: Parameters<ElectronAPI['pm2']['getLogFile']>[0]): ReturnType<ElectronAPI['pm2']['getLogFile']> => {
         const result = new OperationResult();
 
         const saveLocation = await dialog.showSaveDialog({
@@ -83,7 +83,7 @@ export const initializeIpcHandlers = () => {
         if (!saveLocation.canceled && saveLocation.filePath) {
             if (clientSession.connectionType === "HTTP_SERVER") {
                 try {
-                    const response = await clientSession.initHttpServerRequest(`/pm2/outFilePath?id=${id}`, "GET");
+                    const response = await clientSession.initHttpServerRequest(`/pm2/${args.type === "err" ? "err" : "out"}FilePath?id=${args.pmId}`, "GET");
 
                     const dest = fs.createWriteStream(saveLocation.filePath);
                     if (response.body) {
@@ -97,15 +97,16 @@ export const initializeIpcHandlers = () => {
                 }
 
             } else {
-                const filePath = await clientSession.pm2Service.getLogPath(id, "out");
+                const filePath = await clientSession.pm2Service.getLogPath(args.pmId, args.type);
                 if (filePath) {
                     try {
                         await fs.promises.copyFile(filePath, saveLocation.filePath);
+                        result.succeeded();
                     } catch { }
                 }
             }
         }
 
-        return result.failed();
+        return result;
     });
 };
