@@ -105,116 +105,123 @@ function HttpServerForm(props: {
     }, [props, session, navigate, protocol, hostname, port, accessToken]);
 
     return (
-        <Grid container spacing={2}>
-            {session.localStorage.data.history.length > 0 ? (
-                <>
-                    <Grid item xs={8}>
-                        <FormControl fullWidth>
-                            <InputLabel>{UIText.history}</InputLabel>
-                            <Select
+        <form
+            onSubmit={e => {
+                e.preventDefault();
+                connect();
+            }}
+        >
+            <Grid container spacing={2}>
+                {session.localStorage.data.history.length > 0 ? (
+                    <>
+                        <Grid item xs={8}>
+                            <FormControl fullWidth>
+                                <InputLabel>{UIText.history}</InputLabel>
+                                <Select
+                                    fullWidth
+                                    label={UIText.history}
+                                    disabled={props.isLoading}
+                                    onChange={e => {
+                                        const index = Number.parseInt(e.target.value as string);
+                                        const item = session.localStorage.data.history.at(index);
+                                        if (item) {
+                                            try {
+                                                const url = new URL(item.baseUrl);
+                                                setProtocol(url.protocol.split(':')[0]);
+                                                setHostname(url.hostname);
+                                                setPort(url.port || "80");
+                                                setAccessToken(item.accessToken);
+                                            } catch { }
+                                        }
+                                    }}
+                                >
+                                    {session.localStorage.data.history.map((item, index) => <MenuItem key={index} value={index}>{item.baseUrl}</MenuItem>)}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={4} marginBlock="auto">
+                            <Button
                                 fullWidth
-                                label={UIText.history}
-                                disabled={props.isLoading}
-                                onChange={e => {
-                                    const index = Number.parseInt(e.target.value as string);
-                                    const item = session.localStorage.data.history.at(index);
-                                    if (item) {
-                                        try {
-                                            const url = new URL(item.baseUrl);
-                                            setProtocol(url.protocol.split(':')[0]);
-                                            setHostname(url.hostname);
-                                            setPort(url.port || "80");
-                                            setAccessToken(item.accessToken);
-                                        } catch { }
-                                    }
+                                size="large"
+                                variant="outlined"
+                                startIcon={<ClearAll />}
+                                onClick={() => {
+                                    session.localStorage.data.history = [];
+                                    session.localStorage.rewrite();
+                                    session.refreshUI();
                                 }}
-                            >
-                                {session.localStorage.data.history.map((item, index) => <MenuItem key={index} value={index}>{item.baseUrl}</MenuItem>)}
-                            </Select>
-                        </FormControl>
-                    </Grid>
-                    <Grid item xs={4} marginBlock="auto">
-                        <Button
+                                color="warning">{UIText.clear}</Button>
+                        </Grid>
+                    </>
+                ) : null}
+                <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                        <InputLabel>{UIText.protocol}</InputLabel>
+                        <Select
                             fullWidth
-                            size="large"
-                            variant="outlined"
-                            startIcon={<ClearAll />}
-                            onClick={() => {
-                                session.localStorage.data.history = [];
-                                session.localStorage.rewrite();
-                                session.refreshUI();
-                            }}
-                            color="warning">{UIText.clear}</Button>
-                    </Grid>
-                </>
-            ) : null}
-            <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
-                    <InputLabel>{UIText.protocol}</InputLabel>
-                    <Select
+                            value={protocol}
+                            label={UIText.protocol}
+                            disabled={props.isLoading}
+                            onChange={e => setProtocol(e.target.value)}
+                        >
+                            <MenuItem value="http">http</MenuItem>
+                            <MenuItem value="https">https</MenuItem>
+                        </Select>
+                    </FormControl>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                    <TextField
                         fullWidth
-                        value={protocol}
-                        label={UIText.protocol}
+                        value={port}
+                        placeholder={UIText.port}
                         disabled={props.isLoading}
-                        onChange={e => setProtocol(e.target.value)}
-                    >
-                        <MenuItem value="http">http</MenuItem>
-                        <MenuItem value="https">https</MenuItem>
-                    </Select>
-                </FormControl>
-            </Grid>
-            <Grid item xs={12} md={6}>
-                <TextField
-                    fullWidth
-                    value={port}
-                    placeholder={UIText.port}
-                    disabled={props.isLoading}
-                    label={UIText.port}
-                    onBlur={() => port === "" && setPort("80")}
-                    onChange={e => {
-                        const _port = Number.parseInt(e.target.value);
+                        label={UIText.port}
+                        onBlur={() => port === "" && setPort("80")}
+                        onChange={e => {
+                            const _port = Number.parseInt(e.target.value);
 
-                        if (Number.isNaN(_port) || _port < 1 || _port > 65535)
-                            return setPort("");
+                            if (Number.isNaN(_port) || _port < 1 || _port > 65535)
+                                return setPort("");
 
-                        setPort(_port.toString());
-                    }}
-                />
-            </Grid>
-            <Grid item xs={12}>
-                <TextField
-                    fullWidth
-                    value={hostname}
-                    label={UIText.hostname}
-                    disabled={props.isLoading}
-                    onBlur={() => hostname === "" && setHostname("localhost")}
-                    onChange={e => {
-                        let _hostname = e.target.value;
+                            setPort(_port.toString());
+                        }}
+                    />
+                </Grid>
+                <Grid item xs={12}>
+                    <TextField
+                        fullWidth
+                        value={hostname}
+                        label={UIText.hostname}
+                        disabled={props.isLoading}
+                        onBlur={() => hostname === "" && setHostname("localhost")}
+                        onChange={e => {
+                            let _hostname = e.target.value;
 
-                        try {
-                            const url = new URL(`http://${_hostname}`);
-                            _hostname = url.hostname;
-                        } catch {
-                            return setHostname("");
-                        }
+                            try {
+                                const url = new URL(`http://${_hostname}`);
+                                _hostname = url.hostname;
+                            } catch {
+                                return setHostname("");
+                            }
 
-                        setHostname(_hostname);
-                    }}
-                />
+                            setHostname(_hostname);
+                        }}
+                    />
+                </Grid>
+                <Grid item xs={12}>
+                    <TextField
+                        fullWidth
+                        value={accessToken}
+                        label={UIText.token}
+                        disabled={props.isLoading}
+                        onChange={e => setAccessToken(e.target.value)}
+                    />
+                </Grid>
+                <Grid item>
+                    <Button type="submit" color="success" isLoading={props.isLoading} startIcon={<ChevronRight />} endIcon={<Http />}>{UIText.connect}</Button>
+                </Grid>
             </Grid>
-            <Grid item xs={12}>
-                <TextField
-                    fullWidth
-                    value={accessToken}
-                    label={UIText.token}
-                    disabled={props.isLoading}
-                    onChange={e => setAccessToken(e.target.value)}
-                />
-            </Grid>
-            <Grid item>
-                <Button color="success" isLoading={props.isLoading} startIcon={<ChevronRight />} endIcon={<Http />} onClick={connect}>{UIText.connect}</Button>
-            </Grid>
-        </Grid>
+        </form>
     );
 }
 
