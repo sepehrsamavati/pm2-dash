@@ -29,6 +29,17 @@ const statusToColor = (status: string) => {
     return color;
 };
 
+const highlightMaxNumber = (current?: number, numbers?: (number | undefined)[]) => {
+
+    if (!(current && numbers))
+        return "outlined";
+
+    const max = Math.max(...(numbers.filter(x => typeof x === "number") as number[]));
+    if (max !== 0 && current === max)
+        return "filled";
+    return "outlined";
+};
+
 export default function Index() {
     const session = useSession();
     const [lastListRefreshResponseTime, setLastListRefreshResponseTime] = useState(0);
@@ -233,7 +244,8 @@ export default function Index() {
                             {
                                 field: 'name',
                                 sortable: false,
-                                minWidth: 150,
+                                flex: 20,
+                                minWidth: 250,
                                 renderCell: ctx => <><Chip size="small" label={`#${ctx.row.pmId}`} /> {ctx.value}</>,
                                 // headerName: "UIText",
                                 align: "left", headerAlign: "center",
@@ -241,6 +253,7 @@ export default function Index() {
                             {
                                 field: 'status',
                                 sortable: false,
+                                flex: 10,
                                 minWidth: 150,
                                 renderCell: ctx => {
                                     let icon = <SmsFailed />;
@@ -264,16 +277,18 @@ export default function Index() {
                             {
                                 field: 'restartCount',
                                 sortable: false,
+                                flex: 5,
                                 headerName: '🔄',
                                 minWidth: 50,
                                 align: "center", headerAlign: "center",
                             },
                             {
                                 field: 'cpu',
+                                flex: 5,
                                 renderCell: ctx => {
                                     if (!ctx.row.usage) return '-';
                                     const percentUsage = ctx.row.usage.cpu;
-                                    return <Chip variant="outlined" color={percentUsage > 50 ? "error" : (percentUsage > 10 ? "warning" : "info")} label={ctx.row.usage?.cpu} />;
+                                    return <Chip variant={highlightMaxNumber(ctx.row.usage.cpu, list?.map(x => x.usage?.cpu))} color={percentUsage > 50 ? "error" : (percentUsage > 10 ? "warning" : "info")} label={ctx.row.usage?.cpu} />;
                                 },
                                 sortable: false,
                                 headerName: UIText.cpuPercentage,
@@ -282,10 +297,11 @@ export default function Index() {
                             },
                             {
                                 field: 'memory',
+                                flex: 10,
                                 renderCell: ctx => {
                                     if (!ctx.row.usage) return '-';
                                     const ramUsage = ctx.row.usage.memory;
-                                    return <Chip variant="outlined" color={ramUsage > 1024e6 ? "error" : (ramUsage > 300e6 ? "warning" : "info")} label={bytesToSize(ramUsage)} />;
+                                    return <Chip variant={highlightMaxNumber(ctx.row.usage.memory, list?.map(x => x.usage?.memory))} color={ramUsage > 1024e6 ? "error" : (ramUsage > 300e6 ? "warning" : "info")} label={bytesToSize(ramUsage)} />;
                                 },
                                 sortable: false,
                                 headerName: UIText.memoryMegabyteUsage,
@@ -296,6 +312,7 @@ export default function Index() {
                                 field: '⌚',
                                 sortable: false,
                                 minWidth: 50,
+                                flex: 10,
                                 renderCell: ctx => ctx.row.status === 'online' ? msToHumanReadable(Date.now() - ctx.row.startTime) : '-',
                                 align: "center", headerAlign: "center",
                             },
@@ -303,6 +320,7 @@ export default function Index() {
                                 field: 'operation' as keyof Pm2ProcessDescription,
                                 sortable: false,
                                 minWidth: 650,
+                                flex: 40,
                                 renderCell: ctx => (
                                     <Stack gap={1} direction="row" padding={1} justifyContent="center">
                                         <Button
