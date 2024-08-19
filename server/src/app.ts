@@ -3,9 +3,6 @@ import fs from 'node:fs/promises';
 import PM2Service from '../../common/services/pm2';
 import { jwtRequestGuard } from './middlewares/jwt';
 import type { TargetProcess } from '../../common/types/ComInterface';
-import SqliteConnection from './infrastructure/repository/sqlite/Connection';
-
-new SqliteConnection();
 
 const pm2Service = new PM2Service();
 

@@ -2,51 +2,44 @@ import tables from "./configuration/tables";
 import type { ServicesType } from "../../../Services";
 import { User } from "../../../../../common/types/user";
 import type { IUserRepository } from "../../../types/contracts/sqliteRepositories";
-import { commitTransaction, rollbackTransaction, startTransaction } from "./configuration/constants";
 
 export default class UserRepository implements IUserRepository {
     private database;
 
     constructor(container: ServicesType) {
-        this.database = container.databaseConnection.connection;
+        this.database = container.databaseConnection;
     }
 
     async create(user: User): Promise<boolean> {
-        this.database.exec(startTransaction);
+        const transaction = await this.database.instance.transaction();
 
-        const userId = await new Promise<number | null>(resolve => {
-            this.database.run(`INSERT INTO ${tables.users} (username, password, isActive) VALUES (?, ?, ?)`,
-                [user.username, user.password, user.isActive ? 1 : 0],
-                function (err) {
-                    if (err)
-                        resolve(null);
-                    else
-                        resolve(this.lastID);
-                }
-            );
-        });
+        const createdUserRef = await this.database.models.user.create({
+            ...user,
+            isActive: user.isActive ? 1 : 0
+        }, { transaction });
 
-        if (userId !== null) {
+        const createdUserId = createdUserRef.get().id;
+
+        if (typeof createdUserId === "number") {
             try {
-                for (const perm of user.processPermissions) {
-                    await new Promise((resolve, reject) => {
-                        this.database.run(`INSERT INTO ${tables.userProcessPermissions} (userId, processName, permissions) VALUES (?, ?, ?)`,
-                            [userId, perm.processName, perm.permissions.join(',')], err => {
-                                if (err)
-                                    reject(err);
-                                else
-                                    resolve(null);
-                            });
-                    });
-                }
+                const res = await this.database.models.userProcessPermission.bulkCreate(
+                    user.processPermissions.map(
+                        perm => ({
+                            userId: createdUserId,
+                            processName: perm.processName,
+                            permissions: perm.permissions.join(',')
+                        })
+                    )
+                );
+                console.log(res)
 
-                this.database.exec(commitTransaction);
+                await transaction.commit();
                 return true;
             } catch {
-                this.database.exec(rollbackTransaction);
+                await transaction.rollback();
             }
         } else {
-            this.database.exec(rollbackTransaction);
+            await transaction.rollback();
         }
 
         return false;

@@ -1,0 +1,3 @@
+type Definition = {
+    entityName: string;
+};
