@@ -1,12 +1,12 @@
 import Fastify from 'fastify';
 import fs from 'node:fs/promises';
-import PM2Service from '../../common/services/pm2';
+import Services from './Services';
 import { jwtRequestGuard } from './middlewares/jwt';
 import type { TargetProcess } from '../../common/types/ComInterface';
 
-const pm2Service = new PM2Service();
+const services = new Services();
 
-pm2Service.connect();
+services.applications.pm2Service.connect();
 
 const fastify = Fastify({
     logger: true,
@@ -22,32 +22,32 @@ fastify.register((instance, _, next) => {
     });
 
     instance.get("/list", async () => {
-        return await pm2Service.list();
+        return await services.applications.pm2Service.list();
     });
 
     instance.post("/restart", async (req) => {
         const body = req.body as TargetProcess;
-        return await pm2Service.restart(body.id);
+        return await services.applications.pm2Service.restart(body.id);
     });
 
     instance.post("/stop", async (req) => {
         const body = req.body as TargetProcess;
-        return await pm2Service.stop(body.id);
+        return await services.applications.pm2Service.stop(body.id);
     });
 
     instance.patch("/flush", async (req) => {
         const body = req.body as TargetProcess;
-        return await pm2Service.flush(body.id);
+        return await services.applications.pm2Service.flush(body.id);
     });
 
     instance.patch("/reset", async (req) => {
         const body = req.body as TargetProcess;
-        return await pm2Service.reset(body.id);
+        return await services.applications.pm2Service.reset(body.id);
     });
 
     instance.get("/outFilePath", async (req, reply) => {
         const body = req.query as TargetProcess;
-        const path = await pm2Service.getLogPath(body.id, "out");
+        const path = await services.applications.pm2Service.getLogPath(body.id, "out");
         if (path)
             return await fs.readFile(path);
         else
@@ -56,7 +56,7 @@ fastify.register((instance, _, next) => {
 
     instance.get("/errFilePath", async (req, reply) => {
         const body = req.query as TargetProcess;
-        const path = await pm2Service.getLogPath(body.id, "err");
+        const path = await services.applications.pm2Service.getLogPath(body.id, "err");
         if (path)
             return await fs.readFile(path);
         else
