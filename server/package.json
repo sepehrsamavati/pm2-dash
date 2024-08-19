@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
+    "prepare": "ts-patch install",
     "build": "tsc",
     "start": "node ./build/server/src/app.js",
     "token": "node ./build/server/src/scripts/generateToken.js",
@@ -17,10 +18,12 @@
     "fastify": "^4.28.1",
     "jsonwebtoken": "^9.0.2",
     "pm2": "^5.4.2",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "typia": "^6.8.0"
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.6",
+    "ts-patch": "^3.2.1",
     "typescript": "^5.5.4"
   }
 }
