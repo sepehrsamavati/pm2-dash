@@ -1,4 +1,3 @@
-import tables from "./configuration/tables";
 import type { ServicesType } from "../../../Services";
 import { User } from "../../../../../common/types/user";
 import type { IUserRepository } from "../../../types/contracts/sqliteRepositories";

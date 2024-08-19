@@ -1,4 +1,4 @@
-import { Permission } from "./enums";
+import { Permission, AccountType } from "./enums";
 
 export type UserProcessPermission = {
     processName: string;
@@ -8,6 +8,7 @@ export type UserProcessPermission = {
 export type User = {
     username: string;
     password: string;
+    type: AccountType;
     isActive: boolean;
     processPermissions: UserProcessPermission[];
 }

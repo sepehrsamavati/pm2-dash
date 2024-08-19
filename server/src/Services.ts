@@ -4,6 +4,7 @@ import { createContainer, asClass, asValue } from "awilix";
 import type * as RepoInterfaces from "./types/contracts/sqliteRepositories";
 import SqliteConnection from "./infrastructure/repository/sqlite/Connection";
 import UserRepository from "./infrastructure/repository/sqlite/UserRepository";
+import UserApplication from "./application/UserApplication";
 
 type Constants = {
     sqliteFilename: string;
@@ -19,6 +20,7 @@ type Repositories = {
 
 type Applications = {
     pm2Service: PM2Service;
+    userApplication: UserApplication;
 };
 
 export type ServicesType = Constants & Connections & Repositories & Applications;
@@ -43,9 +45,10 @@ export default class Services {
             databaseConnection: asClass(SqliteConnection, { lifetime: "SINGLETON", dispose: async ctx => ctx.close() }),
 
             userRepository: asClass(UserRepository, { lifetime: "SINGLETON" }),
-            pm2Service: asClass(PM2Service, { lifetime: "SINGLETON", dispose: ctx => ctx.disconnect() }),
-        });
 
+            pm2Service: asClass(PM2Service, { lifetime: "SINGLETON", dispose: ctx => ctx.disconnect() }),
+            userApplication: asClass(UserApplication, { lifetime: "SINGLETON" }),
+        });
     }
 
     destroy() {
