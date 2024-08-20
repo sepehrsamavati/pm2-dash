@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "prepare": "ts-patch install",
     "build": "tsc",
     "start": "node ./build/server/src/app.js",
     "token": "node ./build/server/src/scripts/generateToken.js",
@@ -14,17 +13,17 @@
   "license": "ISC",
   "dependencies": {
     "awilix": "^10.0.2",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
     "dotenv": "^16.4.5",
     "fastify": "^4.28.1",
     "jsonwebtoken": "^9.0.2",
     "pm2": "^5.4.2",
     "sequelize": "^6.37.3",
-    "sqlite3": "^5.1.7",
-    "typia": "^6.8.0"
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.6",
-    "ts-patch": "^3.2.1",
     "typescript": "^5.5.4"
   }
 }

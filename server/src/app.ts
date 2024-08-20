@@ -1,4 +1,4 @@
-import Fastify from 'fastify';
+import Fastify, { type FastifyReply } from 'fastify';
 import fs from 'node:fs/promises';
 import Services from './Services';
 import { jwtRequestGuard } from './middlewares/jwt';
@@ -11,6 +11,10 @@ services.applications.pm2Service.connect();
 const fastify = Fastify({
     logger: true,
 });
+
+fastify.decorateReply('locals', {
+    dto: null
+} satisfies FastifyReply['locals']);
 
 fastify.addHook("onRequest", jwtRequestGuard);
 
