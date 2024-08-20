@@ -1,9 +1,9 @@
 import config from "../config";
-import { password } from "../utils/crypto";
 import type { ServicesType } from "../Services";
-import type { User } from "../../../common/types/user";
-import { AccountType } from "../../../common/types/enums";
-import { OperationResult } from "../../../common/models/OperationResult";
+import type { User, UserViewModel } from "../../../common/types/user";
+import { password as passwordUtils } from "../utils/crypto";
+import { AccountType, Permission } from "../../../common/types/enums";
+import { OperationResult, OperationResultWithData } from "../../../common/models/OperationResult";
 
 export default class UserApplication {
     private userRepository;
@@ -34,7 +34,7 @@ export default class UserApplication {
             if (usersCount !== 0)
                 return result.failed("Users count is not zero, can't create admin user!");
 
-            const hashedPassword = password.encode(config.adminPassword);
+            const hashedPassword = passwordUtils.encode(config.adminPassword);
             if (!hashedPassword)
                 return result.failed("Couldn't hash password!");
 
@@ -56,5 +56,31 @@ export default class UserApplication {
         }
 
         return result;
+    }
+
+    async login(username: string, password: string) {
+        const result = new OperationResultWithData<string>();
+
+        const user = await this.userRepository.get({ username });
+
+        if (!user)
+            return result.failed("invalidCredential");
+
+        if (passwordUtils.compare(password, user.password))
+            result.setData(user.username).succeeded();
+        else
+            result.failed("invalidCredential");
+
+        return result;
+    }
+
+    async getViewModelByUsername(username: string): Promise<UserViewModel | null> {
+        const user = await this.userRepository.get({ username });
+        return user ? ({
+            username: user.username,
+            isActive: user.isActive,
+            type: user.type,
+            processPermissions: user.processPermissions,
+        }) : null;
     }
 }

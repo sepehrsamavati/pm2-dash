@@ -1,3 +1,4 @@
+import type { User } from "../../../../../../common/types/user";
 import { DataTypes, type Model, type Sequelize } from "sequelize";
 import { AccountType } from "../../../../../../common/types/enums";
 import type { CreateModel, UserDbModel, UserProcessPermissionDbModel } from "./entities";
@@ -42,7 +43,10 @@ export default class Models {
             permissions: DataTypes.STRING,
         });
 
-        this.user.hasMany(this.userProcessPermission, { foreignKey: 'userId' satisfies keyof UserProcessPermissionDbModel });
+        this.user.hasMany(this.userProcessPermission, {
+            as: 'processPermissions' satisfies keyof User,
+            foreignKey: 'userId' satisfies keyof UserProcessPermissionDbModel
+        });
 
         sequelize.sync();
     }

@@ -14,3 +14,7 @@ export type UserProcessPermissionDbModel = Omit<UserProcessPermission, 'permissi
     userId: UserDbModel['id'];
     permissions: string;
 };
+
+export type UserIncludedDbModel = UserDbModel & {
+    processPermissions: UserProcessPermissionDbModel[];
+};

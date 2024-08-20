@@ -1,10 +1,17 @@
-import Fastify, { type FastifyReply } from 'fastify';
+import "./config";
 import fs from 'node:fs/promises';
-import Services from './Services';
-import { jwtRequestGuard } from './middlewares/jwt';
+import LoginDTO from './dto/LoginDTO';
+import { signToken } from './utils/jwt';
+import services from './servicesInstance';
+import { jwtResolve } from './middlewares/jwt';
+import CreateUserDTO from "./dto/user/CreateUserDTO";
+import Fastify, { type FastifyRequest } from 'fastify';
+import { AccountType } from "../../common/types/enums";
+import { dtoValidator } from './middlewares/dtoValidator';
+import type { UserViewModel } from '../../common/types/user';
+import { accountTypeGuard, authGuard } from "./middlewares/guards";
 import type { TargetProcess } from '../../common/types/ComInterface';
-
-const services = new Services();
+import { OperationResultWithData } from '../../common/models/OperationResult';
 
 services.applications.pm2Service.connect();
 
@@ -12,13 +19,44 @@ const fastify = Fastify({
     logger: true,
 });
 
-fastify.decorateReply('locals', {
-    dto: null
-} satisfies FastifyReply['locals']);
+fastify.addHook('onRequest', function (req, _, done) {
+    req.locals = {
+        user: null as unknown as UserViewModel,
+        dto: null
+    };
+    done();
+});
 
-fastify.addHook("onRequest", jwtRequestGuard);
+fastify.post("/login", { preValidation: dtoValidator(LoginDTO) }, async (req, reply) => {
+    const payload = req.locals.dto as LoginDTO;
+    const result = new OperationResultWithData<string>();
+    const loginResult = await services.applications.userApplication.login(payload.username, payload.password);
+
+    if (loginResult.ok && loginResult.data) {
+        const token = signToken(loginResult.data);
+        result.setData(token);
+    } else {
+        result.failed(loginResult.message);
+    }
+
+    return result;
+});
 
 fastify.register((instance, _, next) => {
+    instance.addHook("onRequest", jwtResolve);
+    instance.addHook("onRequest", authGuard);
+
+    instance.put("/create", { onRequest: [accountTypeGuard(AccountType.Admin)], preValidation: dtoValidator(CreateUserDTO) }, async (req) => {
+        return services.applications.userApplication.create(req.locals.dto as CreateUserDTO);
+    });
+
+    next();
+}, { prefix: "user" });
+
+fastify.register((instance, _, next) => {
+    instance.addHook("onRequest", jwtResolve);
+    instance.addHook("onRequest", authGuard);
+
     instance.get("/", () => {
         return {
             ok: true

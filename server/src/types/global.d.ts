@@ -1,8 +1,11 @@
-import { FastifyReply } from "fastify";
+import type { FastifyRequest } from "fastify";
+import type { UserViewModel } from "../../../common/types/user";
 
 declare module 'fastify' {
-    interface FastifyReply {
+    interface FastifyRequest {
         locals: {
+            /** May be null - Be sure to call jwt middleware */
+            user: UserViewModel;
             dto: unknown;
         };
     }

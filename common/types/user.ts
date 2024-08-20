@@ -12,3 +12,5 @@ export type User = {
     isActive: boolean;
     processPermissions: UserProcessPermission[];
 }
+
+export type UserViewModel = Omit<User, 'password'>;

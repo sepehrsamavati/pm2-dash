@@ -1,6 +1,8 @@
 import type { ServicesType } from "../../../Services";
 import type { User } from "../../../../../common/types/user";
+import type { UserDbModel, UserIncludedDbModel } from "./configuration/entities";
 import type { IUserRepository } from "../../../types/contracts/sqliteRepositories";
+import { WhereOptions } from "sequelize";
 
 export default class UserRepository implements IUserRepository {
     private database;
@@ -21,20 +23,21 @@ export default class UserRepository implements IUserRepository {
 
         if (typeof createdUserId === "number") {
             try {
-                const res = await this.database.models.userProcessPermission.bulkCreate(
+                await this.database.models.userProcessPermission.bulkCreate(
                     user.processPermissions.map(
                         perm => ({
                             userId: createdUserId,
                             processName: perm.processName,
                             permissions: perm.permissions.join(',')
                         })
-                    )
+                    ),
+                    { transaction }
                 );
-                console.log(res)
 
                 await transaction.commit();
                 return true;
-            } catch {
+            } catch (err) {
+                console.log(err)
                 await transaction.rollback();
             }
         } else {
@@ -48,6 +51,39 @@ export default class UserRepository implements IUserRepository {
         try {
             const res = await this.database.models.user.count();
             return res;
+        } catch (err) {
+            console.error(err);
+            return null;
+        }
+    }
+
+    async get(user: Partial<UserDbModel>): Promise<User | null> {
+        try {
+            const _where: WhereOptions<UserDbModel> = {
+                isActive: 1
+            };
+
+            if (user.id)
+                _where.id = user.id;
+
+            if (user.username)
+                _where.username = user.username;
+
+            const res = await this.database.models.user.findOne({
+                plain: true,
+                where: _where,
+                include: {
+                    all: true,
+                }
+            }) as unknown as UserIncludedDbModel;
+
+            return res ? {
+                username: res.username,
+                password: res.password,
+                type: res.type,
+                isActive: res.isActive === 1,
+                processPermissions: res.processPermissions.map(item => ({ processName: item.processName, permissions: item.permissions.split(',').map(x => Number.parseInt(x)) }))
+            } as User : null;
         } catch (err) {
             console.error(err);
             return null;
