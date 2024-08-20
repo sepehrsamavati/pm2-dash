@@ -1,5 +1,5 @@
 import type { ServicesType } from "../../../Services";
-import { User } from "../../../../../common/types/user";
+import type { User } from "../../../../../common/types/user";
 import type { IUserRepository } from "../../../types/contracts/sqliteRepositories";
 
 export default class UserRepository implements IUserRepository {
@@ -42,5 +42,15 @@ export default class UserRepository implements IUserRepository {
         }
 
         return false;
+    }
+
+    async count() {
+        try {
+            const res = await this.database.models.user.count();
+            return res;
+        } catch (err) {
+            console.error(err);
+            return null;
+        }
     }
 }

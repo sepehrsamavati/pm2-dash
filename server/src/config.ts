@@ -2,8 +2,10 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 const config = Object.freeze({
-    secret: process.env.JWT_SIGN_SECRET ?? "",
-    sqliteFilename: "db.sqlite3"
+    secret: process.env.PM2GS_JWT_SIGN_SECRET ?? "",
+    adminPassword: process.env.PM2GS_ADMIN_PASSWORD ?? "",
+    sqliteFilename: "db.sqlite3",
+    passwordSaltLength: 32
 });
 
 if (!config.secret) {
