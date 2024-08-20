@@ -6,7 +6,6 @@
     "build": "tsc",
     "seed": "node ./build/server/src/utils/seed.js",
     "start": "node ./build/server/src/app.js",
-    "token": "node ./build/server/src/scripts/generateToken.js",
     "secret": "node -e console.log(require('crypto').randomBytes(48).toString('hex'))"
   },
   "keywords": [],
