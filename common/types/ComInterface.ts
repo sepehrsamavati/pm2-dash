@@ -1,6 +1,6 @@
 import type { ILoginDTO } from "./dto";
 import type { Pm2ProcessDescription } from "./pm2";
-import type { OperationResultType } from "./OperationResult";
+import type { OperationResultType, OperationResultWithDataType } from "./OperationResult";
 
 export type Pm2ConnectionType = 'LOCAL_IPC' | 'HTTP_SERVER';
 
@@ -21,7 +21,7 @@ export type ElectronAPI = {
         stop: (pmId: number | string) => Promise<OperationResultType>;
         flush: (pmId: number | string) => Promise<OperationResultType>;
         resetCounter: (pmId: number | string) => Promise<OperationResultType>;
-        getList: () => Promise<Pm2ProcessDescription[]>;
+        getList: () => Promise<OperationResultWithDataType<Pm2ProcessDescription[]>>;
 
         getLogFile: (args: { pmId: number | string; type: "out" | "err"; }) => Promise<OperationResultType>;
     };

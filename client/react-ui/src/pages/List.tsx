@@ -63,8 +63,8 @@ export default function Index() {
                 const end = performance.now();
                 setLastListRefreshResponseTime(Math.round(end - start));
 
-                if (Array.isArray(res)) {
-                    setList(res);
+                if (Array.isArray(res.data)) {
+                    setList(res.data);
                 } else if (typeof res === "object") {
                     session.snackbarProvider(resultUIText(res), { variant: "warning" });
                 }
