@@ -1,18 +1,17 @@
 import "./config";
+import Fastify from 'fastify';
 import fs from 'node:fs/promises';
 import LoginDTO from './dto/LoginDTO';
 import { signToken } from './utils/jwt';
 import services from './servicesInstance';
 import { jwtResolve } from './middlewares/jwt';
 import CreateUserDTO from "./dto/user/CreateUserDTO";
-import Fastify, { type FastifyRequest } from 'fastify';
-import { AccountType } from "../../common/types/enums";
 import { dtoValidator } from './middlewares/dtoValidator';
 import type { UserViewModel } from '../../common/types/user';
-import { accountTypeGuard, authGuard } from "./middlewares/guards";
-import type { TargetProcess } from '../../common/types/ComInterface';
-import { OperationResultWithData } from '../../common/models/OperationResult';
 import PM2TargetProcessDTO from "./dto/pm2/PM2TargetProcessDTO";
+import { accountTypeGuard, authGuard } from "./middlewares/guards";
+import { AccountType, ClientServerInitHello } from "../../common/types/enums";
+import { OperationResultWithData } from '../../common/models/OperationResult';
 
 const fastify = Fastify({
     logger: true,
@@ -26,14 +25,14 @@ fastify.addHook('onRequest', function (req, _, done) {
     done();
 });
 
-fastify.post("/login", { preValidation: dtoValidator(LoginDTO) }, async (req, reply) => {
+fastify.post("/login", { preValidation: dtoValidator(LoginDTO) }, async (req) => {
     const payload = req.locals.dto as LoginDTO;
     const result = new OperationResultWithData<string>();
     const loginResult = await services.applications.userApplication.login(payload.username, payload.password);
 
     if (loginResult.ok && loginResult.data) {
         const token = signToken(loginResult.data);
-        result.setData(token);
+        result.setData(token).succeeded();
     } else {
         result.failed(loginResult.message);
     }
@@ -52,15 +51,14 @@ fastify.register((instance, _, next) => {
     next();
 }, { prefix: "user" });
 
+fastify.get("/hello", (req, reply) => {
+    const shouldRepeat = req.headers[ClientServerInitHello.ClientKey];
+    return reply.header(ClientServerInitHello.ServerKey, shouldRepeat).send({});
+});
+
 fastify.register((instance, _, next) => {
     instance.addHook("onRequest", jwtResolve);
     instance.addHook("onRequest", authGuard);
-
-    instance.get("/", () => {
-        return {
-            ok: true
-        };
-    });
 
     instance.get("/list", async (req) => {
         return await services.applications.pm2Application.getList(req.locals.user);

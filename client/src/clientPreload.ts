@@ -4,9 +4,10 @@ import type { ElectronAPI } from "../../common/types/ComInterface";
 contextBridge.exposeInMainWorld('electronAPI', {
     clientReady: () => ipcRenderer.send('showMainFrame'),
     closeApp: () => ipcRenderer.send('closeApp'),
+    initIpc: () => ipcRenderer.invoke('initIpc'),
+    initHttp: (targetServer) => ipcRenderer.invoke('initHttp', targetServer),
+    login: (dto) => ipcRenderer.invoke('login', dto),
     pm2: {
-        initIpc: () => ipcRenderer.invoke('pm2:initIpc'),
-        initHttp: (targetServer) => ipcRenderer.invoke('pm2:initHttp', targetServer),
         dispose: () => ipcRenderer.invoke('pm2:dispose'),
         restart: (pmId: number | string) => ipcRenderer.invoke('pm2:restart', pmId),
         stop: (pmId: number | string) => ipcRenderer.invoke('pm2:stop', pmId),

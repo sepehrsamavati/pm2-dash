@@ -29,7 +29,17 @@ const keys = [
     "history",
     "clear",
     "log",
-    "readonlyMode"
+    "readonlyMode",
+    "fieldIsRequired",
+    "minValidValue",
+    "maxValidValue",
+    "minValidLength",
+    "maxValidLength",
+    "validLength",
+    "login",
+    "username",
+    "password",
+    "return",
 ] as const;
 
 export type UITextKey = typeof keys[number];

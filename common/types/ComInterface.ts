@@ -1,3 +1,4 @@
+import type { ILoginDTO } from "./dto";
 import type { Pm2ProcessDescription } from "./pm2";
 import type { OperationResultType } from "./OperationResult";
 
@@ -10,9 +11,10 @@ export type TargetProcess = {
 export type ElectronAPI = {
     clientReady: () => void;
     closeApp: () => void;
+    initIpc: () => Promise<OperationResultType>;
+    initHttp: (args: { basePath: string; }) => Promise<OperationResultType>;
+    login: (dto: ILoginDTO) => Promise<OperationResultType>;
     pm2: {
-        initIpc: () => Promise<OperationResultType>;
-        initHttp: (args: { basePath: string; accessToken: string }) => Promise<OperationResultType>;
         dispose: () => Promise<OperationResultType>;
 
         restart: (pmId: number | string) => Promise<OperationResultType>;

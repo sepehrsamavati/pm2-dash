@@ -33,7 +33,17 @@ const UIText = Object.freeze({
     history: "History",
     clear: "Clear",
     log: "Log",
-    readonlyMode: "Readonly mode"
+    readonlyMode: "Readonly mode",
+    fieldIsRequired: "This field is required",
+    minValidValue: "Minimum valid value is %s1",
+    maxValidValue: "Maximum valid value is %s1",
+    minValidLength: "Minimum valid value is %s1",
+    maxValidLength: "Maximum valid value is %s1",
+    validLength: "Length should be %s1 characters",
+    login: "Login",
+    username: "Username",
+    password: "Password",
+    return: "Return"
 } as UITextType);
 
 export const resultUIText = (result: OperationResultType) => UIText[result.message as UITextKey] ?? result.message;

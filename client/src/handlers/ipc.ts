@@ -3,8 +3,10 @@ import { Readable } from "node:stream";
 import { ipcMain, dialog } from "electron";
 import { finished } from "node:stream/promises";
 import ClientSession from "../app/ClientSession";
+import type { ILoginDTO } from "../../../common/types/dto";
 import type { ElectronAPI } from "../../../common/types/ComInterface";
 import { OperationResult } from "../../../common/models/OperationResult";
+import { OperationResultWithDataType } from "../../../common/types/OperationResult";
 
 let initialized = false;
 let clientSession = new ClientSession();
@@ -16,13 +18,21 @@ export const initializeIpcHandlers = () => {
     }
     initialized = true;
 
-    ipcMain.handle('pm2:initIpc', async (): ReturnType<ElectronAPI['pm2']['initIpc']> => {
+    ipcMain.handle('initIpc', async (): ReturnType<ElectronAPI['initIpc']> => {
         clientSession.connectionType = "LOCAL_IPC";
         return await clientSession.pm2Service.connect();
     });
 
-    ipcMain.handle('pm2:initHttp', async (_, targetServer: Parameters<ElectronAPI['pm2']['initHttp']>[0]): ReturnType<ElectronAPI['pm2']['initHttp']> => {
-        return await clientSession.initHttpConnection(targetServer.basePath, targetServer.accessToken);
+    ipcMain.handle('initHttp', async (_, targetServer: Parameters<ElectronAPI['initHttp']>[0]): ReturnType<ElectronAPI['initHttp']> => {
+        return await clientSession.initHttpConnection(targetServer.basePath);
+    });
+
+    ipcMain.handle('login', async (_, dto: ILoginDTO): ReturnType<ElectronAPI['login']> => {
+        const result = await clientSession.httpServerRequest("/login", "POST", dto) as unknown as OperationResultWithDataType<string>;
+        if (result.ok && result.data) {
+            clientSession.pm2HttpServerAccessToken = result.data;
+        }
+        return result;
     });
 
     ipcMain.handle('pm2:dispose', async (): ReturnType<ElectronAPI['pm2']['dispose']> => {

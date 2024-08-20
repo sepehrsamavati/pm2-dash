@@ -19,3 +19,8 @@ export enum Permission {
     GetOutputLog = 8,
     GetErrorLog = 9,
 }
+
+export enum ClientServerInitHello {
+    ClientKey = "repeat_after_me",
+    ServerKey = "here_you_go"
+}

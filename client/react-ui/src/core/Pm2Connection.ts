@@ -13,7 +13,7 @@ export class Pm2LocalIpcConnection implements IPm2Connection {
     }
 
     async connect() {
-        const result = await window.electronAPI.pm2.initIpc();
+        const result = await window.electronAPI.initIpc();
 
         if (result.ok)
             this._isConnected = true;
@@ -47,9 +47,8 @@ export class Pm2HttpServerConnection implements IPm2Connection {
     accessToken = "";
 
     async connect(): Promise<OperationResultType> {
-        const result = await window.electronAPI.pm2.initHttp({
-            basePath: `${this.protocol}://${this.hostname}:${this.port}`,
-            accessToken: this.accessToken
+        const result = await window.electronAPI.initHttp({
+            basePath: `${this.protocol}://${this.hostname}:${this.port}`
         });
 
         if (result.ok)
