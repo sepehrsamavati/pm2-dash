@@ -1,8 +1,8 @@
+import { WhereOptions } from "sequelize";
 import type { ServicesType } from "../../../Services";
 import type { User } from "../../../../../common/types/user";
 import type { UserDbModel, UserIncludedDbModel } from "./configuration/entities";
 import type { IUserRepository } from "../../../types/contracts/sqliteRepositories";
-import { WhereOptions } from "sequelize";
 
 export default class UserRepository implements IUserRepository {
     private database;
@@ -14,10 +14,7 @@ export default class UserRepository implements IUserRepository {
     async create(user: User): Promise<boolean> {
         const transaction = await this.database.instance.transaction();
 
-        const createdUserRef = await this.database.models.user.create({
-            ...user,
-            isActive: user.isActive ? 1 : 0
-        }, { transaction });
+        const createdUserRef = await this.database.models.user.create(user, { transaction });
 
         const createdUserId = createdUserRef.get().id;
 
@@ -81,7 +78,7 @@ export default class UserRepository implements IUserRepository {
                 username: res.username,
                 password: res.password,
                 type: res.type,
-                isActive: res.isActive === 1,
+                isActive: res.isActive,
                 processPermissions: res.processPermissions.map(item => ({ processName: item.processName, permissions: item.permissions.split(',').map(x => Number.parseInt(x)) }))
             } as User : null;
         } catch (err) {

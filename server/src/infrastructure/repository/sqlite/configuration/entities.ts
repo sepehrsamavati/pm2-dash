@@ -6,9 +6,7 @@ type WithIncrementalId<T> = T & {
 
 export type CreateModel<T> = Omit<T, 'id'>;
 
-export type UserDbModel = WithIncrementalId<Omit<User, 'isActive' | 'processPermissions'> & {
-    isActive: number;
-}>;
+export type UserDbModel = WithIncrementalId<Omit<User, 'processPermissions'>>;
 
 export type UserProcessPermissionDbModel = Omit<UserProcessPermission, 'permissions'> & {
     userId: UserDbModel['id'];
