@@ -6,3 +6,7 @@ export type ILoginDTO = {
 };
 
 export type ICreateUserDTO = User;
+
+export type IPM2TargetProcess = {
+    pmId: "all" | (string & {});
+}

@@ -12,8 +12,7 @@ import type { UserViewModel } from '../../common/types/user';
 import { accountTypeGuard, authGuard } from "./middlewares/guards";
 import type { TargetProcess } from '../../common/types/ComInterface';
 import { OperationResultWithData } from '../../common/models/OperationResult';
-
-services.applications.pm2Service.connect();
+import PM2TargetProcessDTO from "./dto/pm2/PM2TargetProcessDTO";
 
 const fastify = Fastify({
     logger: true,
@@ -63,44 +62,56 @@ fastify.register((instance, _, next) => {
         };
     });
 
-    instance.get("/list", async () => {
-        return await services.applications.pm2Service.list();
+    instance.get("/list", async (req) => {
+        return await services.applications.pm2Application.getList(req.locals.user);
     });
 
-    instance.post("/restart", async (req) => {
-        const body = req.body as TargetProcess;
-        return await services.applications.pm2Service.restart(body.id);
+    instance.post("/restart", { preValidation: dtoValidator(PM2TargetProcessDTO) }, async (req) => {
+        return await services.applications.pm2Application.restart({
+            user: req.locals.user,
+            pmId: (req.locals.dto as PM2TargetProcessDTO).pmId
+        });
     });
 
-    instance.post("/stop", async (req) => {
-        const body = req.body as TargetProcess;
-        return await services.applications.pm2Service.stop(body.id);
+    instance.post("/stop", { preValidation: dtoValidator(PM2TargetProcessDTO) }, async (req) => {
+        return await services.applications.pm2Application.stop({
+            user: req.locals.user,
+            pmId: (req.locals.dto as PM2TargetProcessDTO).pmId
+        });
     });
 
-    instance.patch("/flush", async (req) => {
-        const body = req.body as TargetProcess;
-        return await services.applications.pm2Service.flush(body.id);
+    instance.patch("/flush", { preValidation: dtoValidator(PM2TargetProcessDTO) }, async (req) => {
+        return await services.applications.pm2Application.flush({
+            user: req.locals.user,
+            pmId: (req.locals.dto as PM2TargetProcessDTO).pmId
+        });
     });
 
-    instance.patch("/reset", async (req) => {
-        const body = req.body as TargetProcess;
-        return await services.applications.pm2Service.reset(body.id);
+    instance.patch("/reset", { preValidation: dtoValidator(PM2TargetProcessDTO) }, async (req) => {
+        return await services.applications.pm2Application.reset({
+            user: req.locals.user,
+            pmId: (req.locals.dto as PM2TargetProcessDTO).pmId
+        });
     });
 
-    instance.get("/outFilePath", async (req, reply) => {
-        const body = req.query as TargetProcess;
-        const path = await services.applications.pm2Service.getLogPath(body.id, "out");
-        if (path)
-            return await fs.readFile(path);
+    instance.get("/outFilePath", { preValidation: dtoValidator(PM2TargetProcessDTO) }, async (req, reply) => {
+        const result = await services.applications.pm2Application.readOutputLogFile({
+            user: req.locals.user,
+            pmId: (req.locals.dto as PM2TargetProcessDTO).pmId
+        });
+        if (result.data)
+            return await fs.readFile(result.data);
         else
             return reply.status(404);
     });
 
-    instance.get("/errFilePath", async (req, reply) => {
-        const body = req.query as TargetProcess;
-        const path = await services.applications.pm2Service.getLogPath(body.id, "err");
-        if (path)
-            return await fs.readFile(path);
+    instance.get("/errFilePath", { preValidation: dtoValidator(PM2TargetProcessDTO) }, async (req, reply) => {
+        const result = await services.applications.pm2Application.readErrorLogFile({
+            user: req.locals.user,
+            pmId: (req.locals.dto as PM2TargetProcessDTO).pmId
+        });
+        if (result.data)
+            return await fs.readFile(result.data);
         else
             return reply.status(404);
     });

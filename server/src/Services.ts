@@ -1,10 +1,11 @@
 import config from "./config";
 import PM2Service from "../../common/services/pm2";
+import PM2Application from "./application/PM2Application";
 import { createContainer, asClass, asValue } from "awilix";
+import UserApplication from "./application/UserApplication";
 import type * as RepoInterfaces from "./types/contracts/sqliteRepositories";
 import SqliteConnection from "./infrastructure/repository/sqlite/Connection";
 import UserRepository from "./infrastructure/repository/sqlite/UserRepository";
-import UserApplication from "./application/UserApplication";
 
 type Constants = {
     sqliteFilename: string;
@@ -12,6 +13,7 @@ type Constants = {
 
 type Connections = {
     databaseConnection: SqliteConnection;
+    pm2Daemon: PM2Service;
 };
 
 type Repositories = {
@@ -19,7 +21,7 @@ type Repositories = {
 };
 
 type Applications = {
-    pm2Service: PM2Service;
+    pm2Application: PM2Application;
     userApplication: UserApplication;
 };
 
@@ -43,10 +45,11 @@ export default class Services {
             sqliteFilename: asValue(config.sqliteFilename),
 
             databaseConnection: asClass(SqliteConnection, { lifetime: "SINGLETON", dispose: async ctx => ctx.close() }),
+            pm2Daemon: asClass(PM2Service, { lifetime: "SINGLETON", dispose: ctx => ctx.disconnect() }),
 
             userRepository: asClass(UserRepository, { lifetime: "SINGLETON" }),
 
-            pm2Service: asClass(PM2Service, { lifetime: "SINGLETON", dispose: ctx => ctx.disconnect() }),
+            pm2Application: asClass(PM2Application, { lifetime: "SINGLETON" }),
             userApplication: asClass(UserApplication, { lifetime: "SINGLETON" }),
         });
     }
