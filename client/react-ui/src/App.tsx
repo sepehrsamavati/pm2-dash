@@ -1,6 +1,8 @@
 import List from './pages/List';
 import Login from './pages/Login';
 import Connect from './pages/Connect';
+import { AccountType } from './types/enums';
+import UserList from './pages/user/UserList';
 import { SnackbarProvider } from 'notistack';
 import { ThemeProvider } from '@mui/material';
 import MainLayout from './components/layout/MainLayout';
@@ -9,7 +11,6 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { muiThemeOptions, type ThemeName } from './core/config/muiConfig';
 import { SnackbarProviderConfigurator } from './core/helpers/snackbarProvider';
-import { AccountType } from './types/enums';
 
 function App() {
   const [theme] = useState<ThemeName>('dark');
@@ -38,6 +39,7 @@ function App() {
                 <Route path="/Login" element={<Login />} />
                 {session.user?.type === AccountType.Admin ? (
                   <Route path="/Users">
+                    <Route path="List" element={<UserList />} />
                   </Route>
                 ) : null}
                 {session.pm2Connection ? <Route path="/List" element={<List />} /> : null}

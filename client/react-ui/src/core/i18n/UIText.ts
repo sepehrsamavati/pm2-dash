@@ -67,8 +67,11 @@ const UIText = Object.freeze({
     rowsSelected: "%s1 rows selected",
     search: "Search",
     dashboard: "Dashboard",
-    users: "Users"
-} as UITextType);
+    users: "Users",
+    active: "Active",
+    inactive: "Inactive",
+    status: "Status"
+} satisfies UITextType);
 
 export const resultUIText = (result: OperationResultType) => UIText[result.message as UITextKey] ?? result.message;
 

@@ -12,7 +12,7 @@ export type MenuLink = {
 };
 
 const links: MenuLink[] = [
-    { title: UIText.dashboard, path: "/List", icon: BarChart, roles: [AccountType.Manager, AccountType.Member] },
+    { title: UIText.dashboard, path: "/List", icon: BarChart, roles: [AccountType.Admin, AccountType.Manager, AccountType.Member] },
     { title: UIText.users, path: "/Users/List", icon: SupervisedUserCircle, roles: [AccountType.Admin] },
 ];
 

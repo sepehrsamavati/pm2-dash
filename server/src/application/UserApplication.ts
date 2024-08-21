@@ -1,10 +1,9 @@
 import config from "../config";
 import type { ServicesType } from "../Services";
-import type { User, UserViewModel } from "../../../common/types/user";
+import { AccountType } from "../../../common/types/enums";
 import { password as passwordUtils } from "../utils/crypto";
-import { AccountType, Permission } from "../../../common/types/enums";
+import type { User, UserInfoViewModel } from "../../../common/types/user";
 import { OperationResult, OperationResultWithData } from "../../../common/models/OperationResult";
-import { IEditUserDTO } from "../../../common/types/dto";
 
 export default class UserApplication {
     private userRepository;
@@ -60,12 +59,13 @@ export default class UserApplication {
     }
 
     async getAllViewModel() {
-        const result = new OperationResultWithData<UserViewModel[]>();
+        const result = new OperationResultWithData<UserInfoViewModel[]>();
 
         const users = await this.userRepository.getAll();
 
         if (users)
             result.setData(users.map(user => ({
+                id: user.id,
                 username: user.username,
                 isActive: user.isActive,
                 type: user.type,
@@ -105,9 +105,10 @@ export default class UserApplication {
         return result;
     }
 
-    async getViewModelByUsername(username: string): Promise<UserViewModel | null> {
+    async getViewModelByUsername(username: string): Promise<UserInfoViewModel | null> {
         const user = await this.userRepository.get({ username });
         return user ? ({
+            id: user.id,
             username: user.username,
             isActive: user.isActive,
             type: user.type,

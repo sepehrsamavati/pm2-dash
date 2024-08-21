@@ -1,6 +1,6 @@
 import { WhereOptions } from "sequelize";
 import type { ServicesType } from "../../../Services";
-import type { User } from "../../../../../common/types/user";
+import type { User, UserWithId } from "../../../../../common/types/user";
 import type { UserDbModel, UserIncludedDbModel } from "./configuration/entities";
 import type { IUserRepository } from "../../../types/contracts/sqliteRepositories";
 
@@ -54,7 +54,7 @@ export default class UserRepository implements IUserRepository {
         }
     }
 
-    async get(user: Partial<UserDbModel>): Promise<User | null> {
+    async get(user: Partial<UserDbModel>): Promise<UserWithId | null> {
         try {
             const _where: WhereOptions<UserDbModel> = {
                 isActive: true
@@ -75,38 +75,42 @@ export default class UserRepository implements IUserRepository {
             }) as unknown as UserIncludedDbModel;
 
             return res ? {
+                id: res.id,
                 username: res.username,
                 password: res.password,
                 type: res.type,
                 isActive: res.isActive,
                 processPermissions: res.processPermissions.map(item => ({ processName: item.processName, permissions: item.permissions.split(',').map(x => Number.parseInt(x)) }))
-            } satisfies User : null;
+            } satisfies UserWithId : null;
         } catch (err) {
             console.error(err);
             return null;
         }
     }
 
-    async getAll(): Promise<User[] | null> {
+    async getAll(): Promise<UserWithId[] | null> {
         try {
             const res = await this.database.models.user.findAll({
-                plain: true,
                 where: {
                     isActive: true
                 },
                 include: {
                     all: true,
                 }
-            }) as unknown as UserIncludedDbModel[];
+            });
 
             return res.map(u => ({
-                username: u.username,
-                password: u.password,
-                type: u.type,
-                isActive: u.isActive,
-                processPermissions: u.processPermissions.map(item => ({ processName: item.processName, permissions: item.permissions.split(',').map(x => Number.parseInt(x)) }))
-            } satisfies User)) ?? null;
-        } catch {
+                id: u.dataValues.id,
+                username: u.dataValues.username,
+                password: u.dataValues.password,
+                type: u.dataValues.type,
+                isActive: u.dataValues.isActive,
+                processPermissions: (u.dataValues as unknown as UserIncludedDbModel)
+                    .processPermissions
+                    .map(item => ({ processName: item.processName, permissions: item.permissions.split(',').map(x => Number.parseInt(x)) }))
+            } satisfies UserWithId)) ?? null;
+        } catch (err) {
+            console.error(err);
             return null;
         }
     }

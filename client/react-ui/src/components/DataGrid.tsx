@@ -17,6 +17,7 @@ export default function DataGrid<T extends GridValidRowModel>(props: Omit<DataGr
         <MuiDataGrid<T>
             disableColumnFilter
             disableColumnMenu
+            disableColumnResize
             disableRowSelectionOnClick
             paginationMode="server"
             autoHeight={true}
@@ -47,7 +48,7 @@ export default function DataGrid<T extends GridValidRowModel>(props: Omit<DataGr
                 if (props.onPaginationModelChange)
                     props.onPaginationModelChange({ ...p, page: p.page + 1 }, a);
             }}
-            rowCount={props.rowCount ?? 0}
+            rowCount={props.paginationMode === "client" ? undefined : (props.rowCount ?? 0)}
             rows={props.rows ?? []}
         />
     );
