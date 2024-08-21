@@ -43,7 +43,27 @@ const UIText = Object.freeze({
     login: "Login",
     username: "Username",
     password: "Password",
-    return: "Return"
+    return: "Return",
+    accountType: "Account type",
+    addProcess: "Add process",
+    adminAccountTypeDescription: "",
+    managerAccountTypeDescription: "",
+    memberAccountTypeDescription: "",
+    createUser: "Create user",
+    editUser: "Edit user",
+    edit: "Edit",
+    activate: "Activate",
+    deactivate: "Deactivate",
+    delete: "Delete",
+    permissions: "Permissions",
+    processName: "Process name",
+    processPermissions: "Process permissions",
+    repeatPassword: "Repeat password",
+    save: "Save",
+    submit: "Submit",
+    view: "View",
+    viewOutputLog: "View output log",
+    viewErrorLog: "View error log"
 } as UITextType);
 
 export const resultUIText = (result: OperationResultType) => UIText[result.message as UITextKey] ?? result.message;

@@ -40,6 +40,28 @@ const keys = [
     "username",
     "password",
     "return",
+
+    "createUser",
+    "edit",
+    "editUser",
+    "repeatPassword",
+    "accountType",
+    "adminAccountTypeDescription",
+    "managerAccountTypeDescription",
+    "memberAccountTypeDescription",
+    "processPermissions",
+    "addProcess",
+    "processName",
+    "permissions",
+    "view",
+    "delete",
+    "viewOutputLog",
+    "viewErrorLog",
+    "activate",
+    "deactivate",
+
+    "submit",
+    "save"
 ] as const;
 
 export type UITextKey = typeof keys[number];
