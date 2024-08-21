@@ -5,9 +5,9 @@ export type ILoginDTO = {
     password: string;
 };
 
-export type ICreateUserDTO = User;
+export type ICreateUserDTO = Omit<User, 'isActive'>;
 
-export type IEditUserDTO = ICreateUserDTO & {
+export type IEditUserDTO = Omit<ICreateUserDTO, 'password'> & {
     id: number;
 };
 

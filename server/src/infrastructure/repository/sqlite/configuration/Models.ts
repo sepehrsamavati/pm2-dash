@@ -15,10 +15,11 @@ export default class Models {
                 type: DataTypes.INTEGER,
                 autoIncrement: true,
                 primaryKey: true,
-
+                allowNull: false,
             },
             type: {
                 type: DataTypes.INTEGER,
+                allowNull: false,
                 validate: {
                     isInt: true,
                     min: AccountType.Admin,
@@ -27,20 +28,36 @@ export default class Models {
             },
             username: {
                 type: DataTypes.STRING,
+                allowNull: false,
                 unique: true,
                 validate: {
                     len: [3, 12],
                     isLowercase: true,
                 }
             },
-            password: DataTypes.STRING,
-            isActive: DataTypes.BOOLEAN
+            password: {
+                type: DataTypes.STRING,
+                allowNull: false,
+            },
+            isActive: {
+                type: DataTypes.BOOLEAN,
+                allowNull: false,
+            }
         });
 
         this.userProcessPermission = sequelize.define<Model<UserProcessPermissionDbModel>>('UserProcessPermission', {
-            userId: DataTypes.INTEGER,
-            processName: DataTypes.STRING,
-            permissions: DataTypes.STRING,
+            userId: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+            },
+            processName: {
+                type: DataTypes.STRING,
+                allowNull: false,
+            },
+            permissions: {
+                type: DataTypes.STRING,
+                allowNull: false,
+            },
         });
 
         this.user.hasMany(this.userProcessPermission, {

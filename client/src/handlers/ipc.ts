@@ -48,6 +48,18 @@ export const initializeIpcHandlers = () => {
         return await clientSession.httpServerRequest("/user/create", "PUT", user);
     });
 
+    ipcMain.handle('users:edit', async (_, user) => {
+        return await clientSession.httpServerRequest("/user/edit", "PATCH", user);
+    });
+
+    ipcMain.handle('users:activate', async (_, id) => {
+        return await clientSession.httpServerRequest(`/user/activate/${id}`, "PATCH");
+    });
+
+    ipcMain.handle('users:deactivate', async (_, id) => {
+        return await clientSession.httpServerRequest(`/user/deactivate/${id}`, "PATCH");
+    });
+
     ipcMain.handle('pm2:dispose', async (): ReturnType<ElectronAPI['pm2']['dispose']> => {
         return await clientSession.dispose();
     });

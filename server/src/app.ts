@@ -12,6 +12,7 @@ import PM2TargetProcessDTO from "./dto/pm2/PM2TargetProcessDTO";
 import { accountTypeGuard, authGuard } from "./middlewares/guards";
 import { AccountType, ClientServerInitHello } from "../../common/types/enums";
 import { OperationResultWithData } from '../../common/models/OperationResult';
+import EditUserDTO from "./dto/user/EditUserDTO";
 
 const fastify = Fastify({
     logger: true,
@@ -55,6 +56,20 @@ fastify.register((instance, _, next) => {
 
     instance.put("/create", { preValidation: dtoValidator(CreateUserDTO) }, async (req) => {
         return await services.applications.userApplication.create(req.locals.dto as CreateUserDTO);
+    });
+
+    instance.patch("/edit", { preValidation: dtoValidator(EditUserDTO) }, async (req) => {
+        return await services.applications.userApplication.edit(req.locals.dto as EditUserDTO);
+    });
+
+    instance.patch("/activate/:id", { preValidation: dtoValidator(CreateUserDTO) }, async (req) => {
+        const id = Number.parseInt((req.params as any)?.id);
+        return await services.applications.userApplication.activate(id);
+    });
+
+    instance.patch("/deactivate/:id", { preValidation: dtoValidator(CreateUserDTO) }, async (req) => {
+        const id = Number.parseInt((req.params as any)?.id);
+        return await services.applications.userApplication.deactivate(id);
     });
 
     next();

@@ -91,9 +91,6 @@ export default class UserRepository implements IUserRepository {
     async getAll(): Promise<UserWithId[] | null> {
         try {
             const res = await this.database.models.user.findAll({
-                where: {
-                    isActive: true
-                },
                 include: {
                     all: true,
                 }
@@ -112,6 +109,55 @@ export default class UserRepository implements IUserRepository {
         } catch (err) {
             console.error(err);
             return null;
+        }
+    }
+
+    async update(id: number, user: Partial<User>): Promise<boolean> {
+        try {
+            const transaction = await this.database.instance.transaction();
+
+            try {
+                const [affectedRows] = await this.database.models.user.update(user, {
+                    transaction,
+                    returning: [],
+                    where: {
+                        id
+                    }
+                });
+
+                if (affectedRows !== 1)
+                    throw new Error("Invalid affected row count!");
+
+                if (user.processPermissions) {
+                    await this.database.models.userProcessPermission.destroy({
+                        transaction,
+                        where: {
+                            userId: id
+                        }
+                    });
+
+                    await this.database.models.userProcessPermission.bulkCreate(
+                        user.processPermissions.map(
+                            perm => ({
+                                userId: id,
+                                processName: perm.processName,
+                                permissions: perm.permissions.join(',')
+                            })
+                        ),
+                        { transaction }
+                    );
+                }
+
+                await transaction.commit();
+                return true;
+            } catch (err) {
+                console.log(err)
+                await transaction.rollback();
+                return false;
+            }
+        } catch (err) {
+            console.error(err);
+            return false;
         }
     }
 }

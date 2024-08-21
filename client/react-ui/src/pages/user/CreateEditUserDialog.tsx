@@ -3,29 +3,33 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { Add, Close, Delete } from "@mui/icons-material";
 import UIText from "../../core/i18n/UIText";
 import Button from "../../components/Button";
-import { IEditUserDTO } from "@/common/types/dto";
-import { UserInfoViewModel } from "@/common/types/user";
-import { formHookBaseConfig } from "../../core/config/formHook";
-import { ForwardedRef, forwardRef, useCallback, useId, useImperativeHandle, useRef, useState } from "react";
-import TextField from "../../components/inputs/TextField";
-import FormValidationHelper from "../../core/helpers/FormValidationHelper";
-import SelectOption from "../../components/inputs/SelectOption";
-import { AccountType } from "../../types/enums";
-import { getEnumValues } from "../../core/helpers/getEnumSelectOptions";
 import { Permission } from "../../types/enums";
+import { AccountType } from "../../types/enums";
+import { UserInfoViewModel } from "@/common/types/user";
+import TextField from "../../components/inputs/TextField";
+import SelectOption from "../../components/inputs/SelectOption";
+import { formHookBaseConfig } from "../../core/config/formHook";
+import { ICreateUserDTO, IEditUserDTO } from "@/common/types/dto";
 import { getPermissionUIText } from "../../core/helpers/getEnumUIText";
+import { getEnumValues } from "../../core/helpers/getEnumSelectOptions";
+import FormValidationHelper from "../../core/helpers/FormValidationHelper";
+import { ForwardedRef, forwardRef, useCallback, useId, useImperativeHandle, useRef, useState } from "react";
+
+type FormType = ICreateUserDTO & IEditUserDTO;
 
 const validations = {
-    username: new FormValidationHelper<IEditUserDTO, "username">().isRequired().maxLength(20).resolve(),
-    password: new FormValidationHelper<IEditUserDTO, "password">().isRequired().maxLength(32).resolve(),
+    username: new FormValidationHelper<FormType, "username">().isRequired().maxLength(20).resolve(),
+    password: new FormValidationHelper<FormType, "password">().isRequired().maxLength(32).resolve(),
+    type: new FormValidationHelper<FormType, "type">().isRequired().isNumber().resolve(),
 
-    processName: new FormValidationHelper<IEditUserDTO, "username">().isRequired().maxLength(32).resolve(),
+    processName: new FormValidationHelper<FormType, "username">().isRequired().maxLength(32).resolve(),
 } as const;
 
 export type CreateEditUserDialogRef = {
     openCreateForm: () => void;
     openEditForm: (user: UserInfoViewModel) => void;
 };
+
 
 const CreateEditUserDialog = forwardRef((props: {
     afterUpsert: () => void;
@@ -36,20 +40,20 @@ const CreateEditUserDialog = forwardRef((props: {
     const [isEdit, setIsEdit] = useState(false);
     const [show, setShow] = useState(false);
     const formRef = useRef<HTMLFormElement>(null);
-    const form = useForm<IEditUserDTO>({
+    const form = useForm<FormType>({
         ...formHookBaseConfig,
         defaultValues: {
             username: "",
             password: "",
+            type: AccountType.Member,
             processPermissions: [],
-            isActive: false,
         },
         // shouldUnregister: !show,
     });
     const [isLoading, setIsLoading] = useState(false);
     const [passwordRepeat, setPasswordRepeat] = useState("");
     const [passwordRepeatMismatch, setPasswordRepeatMismatch] = useState(false);
-    const processPermissions = useFieldArray<IEditUserDTO>({
+    const processPermissions = useFieldArray<FormType>({
         control: form.control,
         name: "processPermissions" satisfies keyof IEditUserDTO
     });
@@ -62,22 +66,28 @@ const CreateEditUserDialog = forwardRef((props: {
         form.reset(undefined, { keepDefaultValues: true });
     }, [form]);
 
-    const submit = useCallback((dto: IEditUserDTO) => {
+    const submit = useCallback((dto: FormType) => {
         if (passwordRepeatMismatch)
             return;
         setIsLoading(true);
-        (isEdit ? window.electronAPI.users.create(dto) : window.electronAPI.users.create(dto))
+        (isEdit ? window.electronAPI.users.edit(dto as IEditUserDTO) : window.electronAPI.users.create(dto as ICreateUserDTO))
             .then(res => {
-                console.log(res)
+                if (res.ok) {
+                    dispose();
+                    props.afterUpsert();
+                } else {
+                    console.log(res)
+                }
             })
             .finally(() => setIsLoading(false));
-    }, [isEdit, passwordRepeatMismatch]);
+    }, [isEdit, props, dispose, passwordRepeatMismatch]);
 
     useImperativeHandle(ref, () => ({
         openCreateForm: () => {
             setShow(true);
         },
         openEditForm: (user) => {
+            form.setValue("id", user.id);
             form.setValue("username", user.username);
             form.setValue("type", user.type);
             form.setValue("processPermissions", user.processPermissions);
@@ -122,6 +132,7 @@ const CreateEditUserDialog = forwardRef((props: {
                                     }}
                                     defaultValue={form.getValues("type")}
                                     value={undefined}
+                                    formRegister={form.register("type", validations.type)}
                                     onChange={() => form.setValue("processPermissions", [])}
                                     options={[
                                         [AccountType.Manager, AccountType[AccountType.Manager]],

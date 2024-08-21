@@ -4,6 +4,7 @@ import { AccountType } from "../../../common/types/enums";
 import { password as passwordUtils } from "../utils/crypto";
 import type { User, UserInfoViewModel } from "../../../common/types/user";
 import { OperationResult, OperationResultWithData } from "../../../common/models/OperationResult";
+import { ICreateUserDTO, IEditUserDTO } from "../../../common/types/dto";
 
 export default class UserApplication {
     private userRepository;
@@ -12,10 +13,19 @@ export default class UserApplication {
         this.userRepository = container.userRepository;
     }
 
-    async create(user: User) {
+    async create(user: ICreateUserDTO) {
         const result = new OperationResult();
 
-        if (await this.userRepository.create(user))
+        const _user = await this.userRepository.get({ username: user.username });
+
+        if (_user)
+            return result.failed("usernameTaken");
+
+        const hashedPassword = passwordUtils.encode(user.password);
+        if (!hashedPassword)
+            return result.failed("Couldn't hash password!");
+
+        if (await this.userRepository.create({ ...user, isActive: true, password: hashedPassword }))
             result.succeeded();
 
         return result;
@@ -34,22 +44,14 @@ export default class UserApplication {
             if (usersCount !== 0)
                 return result.failed("Users count is not zero, can't create admin user!");
 
-            const hashedPassword = passwordUtils.encode(config.adminPassword);
-            if (!hashedPassword)
-                return result.failed("Couldn't hash password!");
-
-            const adminCreateRes = await this.userRepository.create({
+            const adminCreateRes = await this.create({
                 username: "admin",
-                isActive: true,
-                password: hashedPassword,
+                password: config.adminPassword,
                 type: AccountType.Admin,
                 processPermissions: []
             });
 
-            if (adminCreateRes)
-                result.succeeded();
-            else
-                result.failed("Create admin failed");
+            return adminCreateRes;
 
         } else {
             result.failed("Couldn't count users!");
@@ -75,19 +77,49 @@ export default class UserApplication {
         return result;
     }
 
-    // async edit(user: IEditUserDTO) {
-    //     const result = new OperationResult();
+    async edit(user: IEditUserDTO) {
+        const result = new OperationResult();
 
-    //     const userCurrentData = await this.userRepository.get({ username: user.username });
+        const currentUser = await this.userRepository.get({ id: user.id });
 
-    //     if (!user)
-    //         return result.failed("invalidCredential");
+        if (!currentUser)
+            return result.failed("userNotFound");
 
-    //     if (await this.userRepository.create(user))
-    //         result.succeeded();
+        if (currentUser.type === AccountType.Admin)
+            return result.failed("adminEditForbidden");
 
-    //     return result;
-    // }
+        const currentUsername = await this.userRepository.get({ username: user.username });
+
+        if (currentUsername && currentUsername.id !== user.id)
+            return result.failed("usernameTaken");
+
+        if (await this.userRepository.update(user.id, {
+            type: user.type,
+            username: user.username,
+            processPermissions: user.processPermissions,
+        }))
+            result.succeeded();
+
+        return result;
+    }
+
+    async activate(id: number) {
+        const result = new OperationResult();
+
+        if (await this.userRepository.update(id, { isActive: true }))
+            result.succeeded();
+
+        return result;
+    }
+
+    async deactivate(id: number) {
+        const result = new OperationResult();
+
+        if (await this.userRepository.update(id, { isActive: false }))
+            result.succeeded();
+
+        return result;
+    }
 
     async login(username: string, password: string) {
         const result = new OperationResultWithData<string>();

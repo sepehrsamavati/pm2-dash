@@ -10,7 +10,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     users: {
         getList: () => ipcRenderer.invoke('users:getList'),
         create: (user) => ipcRenderer.invoke('users:create', user),
+        edit: (user) => ipcRenderer.invoke('users:edit', user),
         getMe: () => ipcRenderer.invoke('users:getMe'),
+        activate: (id) => ipcRenderer.invoke('users:activate', id),
+        deactivate: (id) => ipcRenderer.invoke('users:deactivate', id),
     },
     pm2: {
         dispose: () => ipcRenderer.invoke('pm2:dispose'),

@@ -6,4 +6,5 @@ export type IUserRepository = {
     count(): Promise<number | null>;
     getAll(): Promise<UserWithId[] | null>;
     get(user: Partial<UserDbModel>): Promise<UserWithId | null>;
+    update(id: number, user: Partial<User>): Promise<boolean>;
 }
