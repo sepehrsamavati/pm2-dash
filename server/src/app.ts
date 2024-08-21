@@ -62,12 +62,12 @@ fastify.register((instance, _, next) => {
         return reply.send(await services.applications.userApplication.edit(req.locals.dto as EditUserDTO));
     });
 
-    instance.patch("/activate/:id", { preValidation: dtoValidator(CreateUserDTO) }, async (req) => {
+    instance.patch("/activate/:id", async (req) => {
         const id = Number.parseInt((req.params as any)?.id);
         return await services.applications.userApplication.activate(id);
     });
 
-    instance.patch("/deactivate/:id", { preValidation: dtoValidator(CreateUserDTO) }, async (req) => {
+    instance.patch("/deactivate/:id", async (req) => {
         const id = Number.parseInt((req.params as any)?.id);
         return await services.applications.userApplication.deactivate(id);
     });

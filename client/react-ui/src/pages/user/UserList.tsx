@@ -16,6 +16,7 @@ export default function UserList() {
     const initialized = useRef(false);
     const [isLoading, setIsLoading] = useState(false);
     const [data, setData] = useState<UserInfoViewModel[]>();
+    const [disableActions, setDisableActions] = useState(false);
     const createEditUserDialogRef = useRef<CreateEditUserDialogRef>(null);
 
     const fetchData = useCallback(() => {
@@ -28,6 +29,28 @@ export default function UserList() {
             })
             .finally(() => setIsLoading(false));
     }, []);
+
+    const activate = useCallback((id: UserInfoViewModel['id']) => {
+        setDisableActions(true);
+        window.electronAPI.users
+            .activate(id)
+            .then(res => {
+                if (res.ok)
+                    fetchData();
+            })
+            .finally(() => setDisableActions(false));
+    }, [fetchData]);
+
+    const deactivate = useCallback((id: UserInfoViewModel['id']) => {
+        setDisableActions(true);
+        window.electronAPI.users
+            .deactivate(id)
+            .then(res => {
+                if (res.ok)
+                    fetchData();
+            })
+            .finally(() => setDisableActions(false));
+    }, [fetchData]);
 
     useEffect(() => {
         if (initialized.current) return;
@@ -88,9 +111,16 @@ export default function UserList() {
                             flex: 50,
                             renderCell: ctx => (
                                 <Stack direction="row" padding={1} spacing={2} justifyContent="center">
-                                    {ctx.row.type !== AccountType.Admin ? <Button size="small" color="warning" startIcon={<Edit />} onClick={() => createEditUserDialogRef.current?.openEditForm(ctx.row)}>{UIText.edit}</Button> : null}
-                                    <Button size="small" color="success">{UIText.activate}</Button>
-                                    <Button size="small" color="error">{UIText.deactivate}</Button>
+                                    {ctx.row.type !== AccountType.Admin ? (
+                                        <>
+                                            <Button disabled={disableActions} size="small" color="warning" startIcon={<Edit />} onClick={() => createEditUserDialogRef.current?.openEditForm(ctx.row)}>{UIText.edit}</Button>
+                                            {
+                                                ctx.row.isActive
+                                                    ? <Button onClick={() => deactivate(ctx.row.id)} disabled={disableActions} size="small" color="error">{UIText.deactivate}</Button>
+                                                    : <Button onClick={() => activate(ctx.row.id)} disabled={disableActions} size="small" color="success">{UIText.activate}</Button>
+                                            }
+                                        </>
+                                    ) : null}
                                 </Stack>
                             )
                         }
