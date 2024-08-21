@@ -2,7 +2,7 @@ import Header from "./Header";
 import RoleHOC from "../RoleHOC";
 import SideMenu from "./SideMenu";
 import { Outlet } from "react-router-dom";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useSession } from "../../core/Session";
 import { AccountType } from "../../types/enums";
 import SideMenuBackdrop from "./SideMenuBackdrop";
@@ -14,6 +14,12 @@ export default function MainLayout() {
 
     const openMenuRequestHandler = useCallback(() => setMenuIsOpen(true), []);
     const closeMenuRequestHandler = useCallback(() => setMenuIsOpen(false), []);
+
+    useEffect(() => {
+        if(session.user?.type !== AccountType.Admin) {
+            setMenuIsOpen(false);
+        }
+    }, [session.user?.type]);
 
     return (
         <>
