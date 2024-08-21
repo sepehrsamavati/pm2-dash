@@ -48,7 +48,7 @@ const CreateEditUserDialog = forwardRef((props: {
             type: AccountType.Member,
             processPermissions: [],
         },
-        // shouldUnregister: !show,
+        shouldUnregister: !show,
     });
     const [isLoading, setIsLoading] = useState(false);
     const [passwordRepeat, setPasswordRepeat] = useState("");
@@ -63,7 +63,12 @@ const CreateEditUserDialog = forwardRef((props: {
         setIsEdit(false);
         setPasswordRepeat("");
         setPasswordRepeatMismatch(false);
-        form.reset(undefined, { keepDefaultValues: true });
+        form.reset({
+            username: "",
+            password: "",
+            type: AccountType.Member,
+            processPermissions: [],
+        });
     }, [form]);
 
     const submit = useCallback((dto: FormType) => {
@@ -133,7 +138,10 @@ const CreateEditUserDialog = forwardRef((props: {
                                     defaultValue={form.getValues("type")}
                                     value={undefined}
                                     formRegister={form.register("type", validations.type)}
-                                    onChange={() => form.setValue("processPermissions", [])}
+                                    onChange={() => {
+                                        form.unregister();
+                                        form.setValue("processPermissions", []);
+                                    }}
                                     options={[
                                         [AccountType.Manager, AccountType[AccountType.Manager]],
                                         [AccountType.Member, AccountType[AccountType.Member]]
@@ -178,7 +186,9 @@ const CreateEditUserDialog = forwardRef((props: {
                                             onClick={() => {
                                                 processPermissions.append({
                                                     processName: "",
-                                                    permissions: []
+                                                    permissions: [
+                                                        Permission.ViewProcess
+                                                    ]
                                                 });
                                             }}
                                         >{UIText.addProcess}</Button>
@@ -201,7 +211,7 @@ const CreateEditUserDialog = forwardRef((props: {
                                                             value={item.permissions}
                                                             onChange={(e) => {
                                                                 const { target: { value } } = e;
-                                                                if (Array.isArray(value))
+                                                                if (Array.isArray(value) && value.includes(Permission.ViewProcess))
                                                                     processPermissions.update(index, { ...item, permissions: value });
                                                             }}
                                                             input={<OutlinedInput id="select-multiple-chip" label={UIText.permissions} />}
