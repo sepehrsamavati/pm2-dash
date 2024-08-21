@@ -117,16 +117,15 @@ export default class UserRepository implements IUserRepository {
             const transaction = await this.database.instance.transaction();
 
             try {
-                const [affectedRows] = await this.database.models.user.update(user, {
+                console.log("\n\n - - - - - - - START - - - - - - -\n\n")
+                await this.database.models.user.update(user, {
                     transaction,
                     returning: [],
                     where: {
                         id
-                    }
+                    },
                 });
-
-                if (affectedRows !== 1)
-                    throw new Error("Invalid affected row count!");
+                console.log("\n\n - - - - - - - DONE - - - - - - -\n\n")
 
                 if (user.processPermissions) {
                     await this.database.models.userProcessPermission.destroy({

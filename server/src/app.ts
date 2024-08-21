@@ -54,12 +54,12 @@ fastify.register((instance, _, next) => {
         return await services.applications.userApplication.getAllViewModel();
     });
 
-    instance.put("/create", { preValidation: dtoValidator(CreateUserDTO) }, async (req) => {
-        return await services.applications.userApplication.create(req.locals.dto as CreateUserDTO);
+    instance.put("/create", { preValidation: dtoValidator(CreateUserDTO) }, async (req, reply) => {
+        return reply.send(await services.applications.userApplication.create(req.locals.dto as CreateUserDTO));
     });
 
-    instance.patch("/edit", { preValidation: dtoValidator(EditUserDTO) }, async (req) => {
-        return await services.applications.userApplication.edit(req.locals.dto as EditUserDTO);
+    instance.patch("/edit", { preValidation: dtoValidator(EditUserDTO) }, async (req, reply) => {
+        return reply.send(await services.applications.userApplication.edit(req.locals.dto as EditUserDTO));
     });
 
     instance.patch("/activate/:id", { preValidation: dtoValidator(CreateUserDTO) }, async (req) => {
