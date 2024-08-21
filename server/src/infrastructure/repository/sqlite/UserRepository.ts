@@ -117,7 +117,6 @@ export default class UserRepository implements IUserRepository {
             const transaction = await this.database.instance.transaction();
 
             try {
-                console.log("\n\n - - - - - - - START - - - - - - -\n\n")
                 await this.database.models.user.update(user, {
                     transaction,
                     returning: [],
@@ -125,7 +124,6 @@ export default class UserRepository implements IUserRepository {
                         id
                     },
                 });
-                console.log("\n\n - - - - - - - DONE - - - - - - -\n\n")
 
                 if (user.processPermissions) {
                     await this.database.models.userProcessPermission.destroy({
