@@ -69,7 +69,9 @@ const keys = [
     "active",
     "inactive",
     "status",
-    "failed"
+    "failed",
+    "close",
+    "none"
 ] as const;
 
 export type UITextKey = typeof keys[number];

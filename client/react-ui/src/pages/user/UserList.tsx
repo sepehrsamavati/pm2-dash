@@ -1,4 +1,4 @@
-import { Chip, Stack } from "@mui/material";
+import { Chip, Grid, Stack } from "@mui/material";
 import UIText from "../../core/i18n/UIText";
 import { AccountType } from "../../types/enums";
 import DataGrid from "../../components/DataGrid";
@@ -7,12 +7,16 @@ import DataGridWrapper from "../../components/DataGridWrapper";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ContentContainer from "../../components/layout/ContentContainer";
 import Button from "../../components/Button";
-import { Edit } from "@mui/icons-material";
+import { AddBoxOutlined, Edit } from "@mui/icons-material";
+import RoundedBox from "../../components/RoundedBox";
+import RoleHOC from "../../components/RoleHOC";
+import CreateEditUserDialog, { type CreateEditUserDialogRef } from "./CreateEditUserDialog";
 
 export default function UserList() {
     const initialized = useRef(false);
     const [isLoading, setIsLoading] = useState(false);
     const [data, setData] = useState<UserInfoViewModel[]>();
+    const createEditUserDialogRef = useRef<CreateEditUserDialogRef>(null);
 
     const fetchData = useCallback(() => {
         setIsLoading(true);
@@ -33,6 +37,27 @@ export default function UserList() {
 
     return (
         <ContentContainer title={UIText.users}>
+
+            <CreateEditUserDialog
+                ref={createEditUserDialogRef}
+                afterUpsert={fetchData}
+            />
+
+            <RoundedBox>
+                <Grid container gap={2}>
+                    <RoleHOC roles={AccountType.Admin}>
+                        <Grid item>
+                            <Button
+                                size="small"
+                                color="success"
+                                onClick={() => createEditUserDialogRef.current?.openCreateForm()}
+                                startIcon={<AddBoxOutlined />}
+                            >{UIText.createUser}</Button>
+                        </Grid>
+                    </RoleHOC>
+                </Grid>
+            </RoundedBox>
+
             <DataGridWrapper>
                 <DataGrid<UserInfoViewModel>
                     paginationMode="client"
