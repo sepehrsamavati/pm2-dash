@@ -4,7 +4,7 @@ import { Add, Close, Delete } from "@mui/icons-material";
 import UIText from "../../core/i18n/UIText";
 import Button from "../../components/Button";
 import { IEditUserDTO } from "@/common/types/dto";
-import { UserInfoViewModel, UserProcessPermission } from "@/common/types/user";
+import { UserInfoViewModel } from "@/common/types/user";
 import { formHookBaseConfig } from "../../core/config/formHook";
 import { ForwardedRef, forwardRef, useCallback, useId, useImperativeHandle, useRef, useState } from "react";
 import TextField from "../../components/inputs/TextField";
@@ -33,18 +33,18 @@ const CreateEditUserDialog = forwardRef((props: {
     const titleId = useId();
     const descriptionId = useId();
     const formId = useId();
-    const [, setDummyState] = useState(0);
-    const refreshUI = useCallback(() => setDummyState(ds => ds + 1), []);
     const [isEdit, setIsEdit] = useState(false);
     const [show, setShow] = useState(false);
     const formRef = useRef<HTMLFormElement>(null);
     const form = useForm<IEditUserDTO>({
         ...formHookBaseConfig,
         defaultValues: {
+            username: "",
             password: "",
             processPermissions: [],
             isActive: false,
-        }
+        },
+        // shouldUnregister: !show,
     });
     const [isLoading, setIsLoading] = useState(false);
     const [passwordRepeat, setPasswordRepeat] = useState("");
@@ -59,25 +59,28 @@ const CreateEditUserDialog = forwardRef((props: {
         setIsEdit(false);
         setPasswordRepeat("");
         setPasswordRepeatMismatch(false);
-        setDummyState(0);
-        form.reset();
+        form.reset(undefined, { keepDefaultValues: true });
     }, [form]);
 
     const submit = useCallback((dto: IEditUserDTO) => {
+        if (passwordRepeatMismatch)
+            return;
         setIsLoading(true);
         (isEdit ? window.electronAPI.users.create(dto) : window.electronAPI.users.create(dto))
             .then(res => {
                 console.log(res)
             })
             .finally(() => setIsLoading(false));
-    }, [isEdit]);
+    }, [isEdit, passwordRepeatMismatch]);
 
     useImperativeHandle(ref, () => ({
         openCreateForm: () => {
             setShow(true);
         },
         openEditForm: (user) => {
-            form.reset(user);
+            form.setValue("username", user.username);
+            form.setValue("type", user.type);
+            form.setValue("processPermissions", user.processPermissions);
             setIsEdit(true);
             setShow(true);
         }
@@ -105,6 +108,7 @@ const CreateEditUserDialog = forwardRef((props: {
                                 <TextField
                                     label={UIText.username}
                                     form={formRef}
+                                    defaultValue={form.getValues("username")}
                                     formRegister={form.register("username", validations.username)}
                                 />
                             </Grid>
@@ -116,34 +120,41 @@ const CreateEditUserDialog = forwardRef((props: {
                                         instance: form,
                                         fieldKey: "type"
                                     }}
+                                    defaultValue={form.getValues("type")}
+                                    value={undefined}
+                                    onChange={() => form.setValue("processPermissions", [])}
                                     options={[
                                         [AccountType.Manager, AccountType[AccountType.Manager]],
                                         [AccountType.Member, AccountType[AccountType.Member]]
                                     ]}
                                 />
                             </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    label={UIText.password}
-                                    form={formRef}
-                                    type="password"
-                                    formRegister={form.register("password", validations.username)}
-                                    onChange={e => setPasswordRepeatMismatch(e.target.value !== passwordRepeat)}
-                                />
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    label={UIText.repeatPassword}
-                                    form={formRef}
-                                    type="password"
-                                    error={passwordRepeatMismatch}
-                                    onChange={e => {
-                                        const value = e.target.value;
-                                        setPasswordRepeatMismatch(value !== form.getValues("password"));
-                                        setPasswordRepeat(value);
-                                    }}
-                                />
-                            </Grid>
+                            {isEdit ? null : (
+                                <>
+                                    <Grid item xs={12} sm={6}>
+                                        <TextField
+                                            label={UIText.password}
+                                            form={formRef}
+                                            type="password"
+                                            formRegister={form.register("password", validations.username)}
+                                            onChange={e => setPasswordRepeatMismatch(e.target.value !== passwordRepeat)}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={6}>
+                                        <TextField
+                                            label={UIText.repeatPassword}
+                                            form={formRef}
+                                            type="password"
+                                            error={passwordRepeatMismatch}
+                                            onChange={e => {
+                                                const value = e.target.value;
+                                                setPasswordRepeatMismatch(value !== form.getValues("password"));
+                                                setPasswordRepeat(value);
+                                            }}
+                                        />
+                                    </Grid>
+                                </>
+                            )}
                             {form.getValues("type") === AccountType.Member ? (
                                 <Grid item marginBlockStart={1} xs={12}>
                                     <Stack direction="column" spacing={1}>
@@ -158,7 +169,6 @@ const CreateEditUserDialog = forwardRef((props: {
                                                     processName: "",
                                                     permissions: []
                                                 });
-                                                refreshUI();
                                             }}
                                         >{UIText.addProcess}</Button>
                                         {processPermissions.fields.map((item, index) => (

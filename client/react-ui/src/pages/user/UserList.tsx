@@ -88,7 +88,7 @@ export default function UserList() {
                             flex: 50,
                             renderCell: ctx => (
                                 <Stack direction="row" padding={1} spacing={2} justifyContent="center">
-                                    <Button size="small" color="warning" startIcon={<Edit />}>{UIText.edit}</Button>
+                                    {ctx.row.type !== AccountType.Admin ? <Button size="small" color="warning" startIcon={<Edit />} onClick={() => createEditUserDialogRef.current?.openEditForm(ctx.row)}>{UIText.edit}</Button> : null}
                                     <Button size="small" color="success">{UIText.activate}</Button>
                                     <Button size="small" color="error">{UIText.deactivate}</Button>
                                 </Stack>

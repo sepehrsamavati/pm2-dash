@@ -15,15 +15,15 @@ export type WithForm = {
 
 export default function TextField(props: WithForm & TextFieldProps) {
     const { errorMessage, formRegister, form, ..._props } = props;
-    const [value, setValue] = useState(props.value ?? props.defaultValue ?? EMPTY_STRING);
+    // const [value, setValue] = useState(props.value ?? props.defaultValue ?? EMPTY_STRING);
     const { ref: refCallback, onChange, ...register } = formRegister ?? {};
     const [autoFilled, setAutoFilled] = useState<true | undefined>(undefined);
 
     const hasError = useMemo(() => Boolean(errorMessage), [errorMessage]);
 
     const changeHandler = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const value = e.target.value;
-        setValue(value);
+        // const value = e.target.value;
+        // setValue(value);
         if (formRegister?.onChange)
             formRegister.onChange(e);
         if (props.onChange)
@@ -38,16 +38,16 @@ export default function TextField(props: WithForm & TextFieldProps) {
         }
     }, []);
 
-    useEffect(() => {
-        if (!props.form?.current) return;
-        const resetHandler = () => {
-            setValue(EMPTY_STRING);
-        };
-        props.form.current.addEventListener('reset', resetHandler);
-        return () => {
-            props.form?.current?.removeEventListener('reset', resetHandler);
-        };
-    }, [props]);
+    // useEffect(() => {
+    //     if (!props.form?.current) return;
+    //     const resetHandler = () => {
+    //         setValue(EMPTY_STRING);
+    //     };
+    //     props.form.current.addEventListener('reset', resetHandler);
+    //     return () => {
+    //         props.form?.current?.removeEventListener('reset', resetHandler);
+    //     };
+    // }, [props]);
 
     return (
         <MuiTextField
@@ -62,8 +62,8 @@ export default function TextField(props: WithForm & TextFieldProps) {
             }}
             {..._props}
             {...register}
-            defaultValue={undefined}
-            value={props.value ?? value}
+            defaultValue={props.defaultValue}
+            // value={props.value ?? value}
             onChange={changeHandler}
             ref={refCallback}
         />
