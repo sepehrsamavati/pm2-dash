@@ -7,6 +7,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     initIpc: () => ipcRenderer.invoke('initIpc'),
     initHttp: (targetServer) => ipcRenderer.invoke('initHttp', targetServer),
     login: (dto) => ipcRenderer.invoke('login', dto),
+    users: {
+        getList: () => ipcRenderer.invoke('users:getList'),
+        create: (user) => ipcRenderer.invoke('users:create', user),
+        getMe: () => ipcRenderer.invoke('users:getMe'),
+    },
     pm2: {
         dispose: () => ipcRenderer.invoke('pm2:dispose'),
         restart: (pmId: number | string) => ipcRenderer.invoke('pm2:restart', pmId),

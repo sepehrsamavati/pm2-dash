@@ -59,9 +59,13 @@ const keys = [
     "viewErrorLog",
     "activate",
     "deactivate",
+    "rowsSelected",
 
     "submit",
-    "save"
+    "save",
+    "search",
+    "dashboard",
+    "users"
 ] as const;
 
 export type UITextKey = typeof keys[number];

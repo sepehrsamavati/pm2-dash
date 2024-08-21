@@ -63,7 +63,11 @@ const UIText = Object.freeze({
     submit: "Submit",
     view: "View",
     viewOutputLog: "View output log",
-    viewErrorLog: "View error log"
+    viewErrorLog: "View error log",
+    rowsSelected: "%s1 rows selected",
+    search: "Search",
+    dashboard: "Dashboard",
+    users: "Users"
 } as UITextType);
 
 export const resultUIText = (result: OperationResultType) => UIText[result.message as UITextKey] ?? result.message;

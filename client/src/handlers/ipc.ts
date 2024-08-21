@@ -4,9 +4,10 @@ import { ipcMain, dialog } from "electron";
 import { finished } from "node:stream/promises";
 import ClientSession from "../app/ClientSession";
 import type { ILoginDTO } from "../../../common/types/dto";
+import { Pm2ProcessDescription } from "../../../common/types/pm2";
 import type { ElectronAPI } from "../../../common/types/ComInterface";
-import { OperationResult } from "../../../common/models/OperationResult";
 import { OperationResultWithDataType } from "../../../common/types/OperationResult";
+import { OperationResult, OperationResultWithData } from "../../../common/models/OperationResult";
 
 let initialized = false;
 let clientSession = new ClientSession();
@@ -33,6 +34,18 @@ export const initializeIpcHandlers = () => {
             clientSession.pm2HttpServerAccessToken = result.data;
         }
         return result;
+    });
+
+    ipcMain.handle('users:getList', async () => {
+        return await clientSession.httpServerRequest("/user/list", "GET");
+    });
+
+    ipcMain.handle('users:getMe', async () => {
+        return await clientSession.httpServerRequest("/user/me", "GET");
+    });
+
+    ipcMain.handle('users:create', async (_, user) => {
+        return await clientSession.httpServerRequest("/user/create", "PUT", user);
     });
 
     ipcMain.handle('pm2:dispose', async (): ReturnType<ElectronAPI['pm2']['dispose']> => {
@@ -73,9 +86,13 @@ export const initializeIpcHandlers = () => {
 
     ipcMain.handle('pm2:getList', async (): ReturnType<ElectronAPI['pm2']['getList']> => {
         if (clientSession.connectionType === "HTTP_SERVER") {
-            return await clientSession.httpServerRequest("/pm2/list", "GET") as unknown as [];
+            return await clientSession.httpServerRequest("/pm2/list", "GET") as unknown as OperationResultWithDataType<Pm2ProcessDescription[]>;
         } else {
-            return await clientSession.pm2Service.list() ?? [];
+            const result = new OperationResultWithData<Pm2ProcessDescription[]>().setData([]);
+            const list = await clientSession.pm2Service.list();
+            if (list)
+                result.setData(list).succeeded();
+            return result;
         }
     });
 

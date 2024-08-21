@@ -3,5 +3,6 @@ export type Pm2HttpServer = {
 }
 
 export type LocalStorage_v1 = {
+    pageSize: number;
     history: Pm2HttpServer[];
 }

@@ -57,7 +57,7 @@ export default class UserRepository implements IUserRepository {
     async get(user: Partial<UserDbModel>): Promise<User | null> {
         try {
             const _where: WhereOptions<UserDbModel> = {
-                isActive: 1
+                isActive: true
             };
 
             if (user.id)
@@ -80,9 +80,33 @@ export default class UserRepository implements IUserRepository {
                 type: res.type,
                 isActive: res.isActive,
                 processPermissions: res.processPermissions.map(item => ({ processName: item.processName, permissions: item.permissions.split(',').map(x => Number.parseInt(x)) }))
-            } as User : null;
+            } satisfies User : null;
         } catch (err) {
             console.error(err);
+            return null;
+        }
+    }
+
+    async getAll(): Promise<User[] | null> {
+        try {
+            const res = await this.database.models.user.findAll({
+                plain: true,
+                where: {
+                    isActive: true
+                },
+                include: {
+                    all: true,
+                }
+            }) as unknown as UserIncludedDbModel[];
+
+            return res.map(u => ({
+                username: u.username,
+                password: u.password,
+                type: u.type,
+                isActive: u.isActive,
+                processPermissions: u.processPermissions.map(item => ({ processName: item.processName, permissions: item.permissions.split(',').map(x => Number.parseInt(x)) }))
+            } satisfies User)) ?? null;
+        } catch {
             return null;
         }
     }

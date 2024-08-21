@@ -1,4 +1,5 @@
 import type { ILoginDTO } from "./dto";
+import { User, UserViewModel } from "./user";
 import type { Pm2ProcessDescription } from "./pm2";
 import type { OperationResultType, OperationResultWithDataType } from "./OperationResult";
 
@@ -14,6 +15,11 @@ export type ElectronAPI = {
     initIpc: () => Promise<OperationResultType>;
     initHttp: (args: { basePath: string; }) => Promise<OperationResultType>;
     login: (dto: ILoginDTO) => Promise<OperationResultType>;
+    users: {
+        getMe: () => Promise<UserViewModel>;
+        getList: () => Promise<OperationResultWithDataType<UserViewModel[]>>;
+        create: (user: User) => Promise<OperationResultType>;
+    };
     pm2: {
         dispose: () => Promise<OperationResultType>;
 

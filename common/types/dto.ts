@@ -7,6 +7,10 @@ export type ILoginDTO = {
 
 export type ICreateUserDTO = User;
 
+export type IEditUserDTO = ICreateUserDTO & {
+    id: number;
+};
+
 export type IPM2TargetProcess = {
     pmId: "all" | (string & {});
 }

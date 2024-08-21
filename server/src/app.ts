@@ -40,12 +40,21 @@ fastify.post("/login", { preValidation: dtoValidator(LoginDTO) }, async (req) =>
     return result;
 });
 
+fastify.get("/user/me", { onRequest: [jwtResolve, authGuard] }, async (req) => {
+    return req.locals.user;
+});
+
 fastify.register((instance, _, next) => {
     instance.addHook("onRequest", jwtResolve);
     instance.addHook("onRequest", authGuard);
+    instance.addHook("onRequest", accountTypeGuard(AccountType.Admin));
 
-    instance.put("/create", { onRequest: [accountTypeGuard(AccountType.Admin)], preValidation: dtoValidator(CreateUserDTO) }, async (req) => {
-        return services.applications.userApplication.create(req.locals.dto as CreateUserDTO);
+    instance.get("/list", async () => {
+        return await services.applications.userApplication.getAllViewModel();
+    });
+
+    instance.put("/create", { preValidation: dtoValidator(CreateUserDTO) }, async (req) => {
+        return await services.applications.userApplication.create(req.locals.dto as CreateUserDTO);
     });
 
     next();

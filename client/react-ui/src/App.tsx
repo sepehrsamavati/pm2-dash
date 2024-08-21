@@ -9,6 +9,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { muiThemeOptions, type ThemeName } from './core/config/muiConfig';
 import { SnackbarProviderConfigurator } from './core/helpers/snackbarProvider';
+import { AccountType } from './types/enums';
 
 function App() {
   const [theme] = useState<ThemeName>('dark');
@@ -35,6 +36,10 @@ function App() {
               <Route path="/" element={<MainLayout />}>
                 <Route path="/" element={<Connect />} />
                 <Route path="/Login" element={<Login />} />
+                {session.user?.type === AccountType.Admin ? (
+                  <Route path="/Users">
+                  </Route>
+                ) : null}
                 {session.pm2Connection ? <Route path="/List" element={<List />} /> : null}
                 <Route path="*" element={<Connect />} />
               </Route>

@@ -30,8 +30,15 @@ export default function Login() {
         window.electronAPI
             .login(dto)
             .then(res => {
-                if (res.ok)
+                if (res.ok) {
+                    window.electronAPI.users
+                        .getMe()
+                        .then(res => {
+                            if (res)
+                                session.user = res;
+                        })
                     navigate("/List");
+                }
                 else
                     session.snackbarProvider(resultUIText(res), { variant: "error" });
             })

@@ -4,6 +4,7 @@ import type { User, UserViewModel } from "../../../common/types/user";
 import { password as passwordUtils } from "../utils/crypto";
 import { AccountType, Permission } from "../../../common/types/enums";
 import { OperationResult, OperationResultWithData } from "../../../common/models/OperationResult";
+import { IEditUserDTO } from "../../../common/types/dto";
 
 export default class UserApplication {
     private userRepository;
@@ -57,6 +58,36 @@ export default class UserApplication {
 
         return result;
     }
+
+    async getAllViewModel() {
+        const result = new OperationResultWithData<UserViewModel[]>();
+
+        const users = await this.userRepository.getAll();
+
+        if (users)
+            result.setData(users.map(user => ({
+                username: user.username,
+                isActive: user.isActive,
+                type: user.type,
+                processPermissions: user.processPermissions,
+            }))).succeeded();
+
+        return result;
+    }
+
+    // async edit(user: IEditUserDTO) {
+    //     const result = new OperationResult();
+
+    //     const userCurrentData = await this.userRepository.get({ username: user.username });
+
+    //     if (!user)
+    //         return result.failed("invalidCredential");
+
+    //     if (await this.userRepository.create(user))
+    //         result.succeeded();
+
+    //     return result;
+    // }
 
     async login(username: string, password: string) {
         const result = new OperationResultWithData<string>();
