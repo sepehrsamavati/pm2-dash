@@ -8,6 +8,10 @@ import ContentContainer from "../components/layout/ContentContainer";
 import { Badge, Box, Chip, Divider, Grid, Stack, Switch } from "@mui/material";
 import { msToHumanReadable, bytesToSize } from "../core/helpers/toHumanReadable";
 import { AutoDelete, CheckCircle, DeleteForever, HighlightOff, ReceiptLong, Refresh, RestartAlt, Save, SmsFailed, Stop } from "@mui/icons-material";
+import permissionHelper from "../core/helpers/permissionHelper";
+import { Permission } from "../types/enums";
+import RoleHOC from "../components/RoleHOC";
+import { AccountType } from "../types/enums";
 
 const statusToColor = (status: string) => {
     let color: 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' = "error";
@@ -150,6 +154,18 @@ export default function Index() {
             });
     }, [refreshUI, getList, session]);
 
+    const stopAll = useCallback(() => {
+        setDisableActions(true);
+        window.electronAPI
+            .pm2.stop('all')
+            .then(res => {
+                if (!res.ok) {
+                    session.snackbarProvider(resultUIText(res), { variant: "error" });
+                }
+            })
+            .finally(() => setDisableActions(false));
+    }, [session]);
+
     const flushAll = useCallback(() => {
         setDisableActions(true);
         window.electronAPI
@@ -206,10 +222,15 @@ export default function Index() {
                 <Grid item xs={12}>
                     <Grid container spacing={1} justifyContent="space-between">
                         <Grid item>
-                            <Stack direction="row" spacing={1} divider={<Divider orientation="vertical" flexItem />}>
-                                <Button onClick={flushAll} variant="outlined" disabled={session.readonlyMode || disableActions} color="warning">{UIText.flushAll}</Button>
-                                <Button onClick={resetCounterAll} variant="outlined" disabled={session.readonlyMode || disableActions} color="info">{UIText.resetAll}</Button>
-                            </Stack>
+                            <RoleHOC roles={AccountType.Manager}>
+                                <Stack direction="column" spacing={1}>
+                                    <Stack direction="row" spacing={1} divider={<Divider orientation="vertical" flexItem />}>
+                                        <Button onClick={flushAll} variant="outlined" disabled={session.readonlyMode || disableActions} color="warning">{UIText.flushAll}</Button>
+                                        <Button onClick={resetCounterAll} variant="outlined" disabled={session.readonlyMode || disableActions} color="info">{UIText.resetAll}</Button>
+                                        <Button onClick={stopAll} variant="outlined" disabled={session.readonlyMode || disableActions} color="error">{UIText.stopAll}</Button>
+                                    </Stack>
+                                </Stack>
+                            </RoleHOC>
                         </Grid>
                         <Grid item>
                             <Stack>
@@ -323,58 +344,101 @@ export default function Index() {
                                 flex: 40,
                                 renderCell: ctx => (
                                     <Stack gap={1} direction="row" padding={1} justifyContent="center">
-                                        <Button
-                                            size="small"
-                                            disabled={session.readonlyMode || disableActions || lockedPmIds.current.has(ctx.row.pmId)}
-                                            color="success"
-                                            startIcon={<RestartAlt />}
-                                            onClick={() => restart(ctx.row)}
-                                        >{UIText.restart}</Button>
-                                        <Button
-                                            size="small"
-                                            disabled={session.readonlyMode || disableActions || lockedPmIds.current.has(ctx.row.pmId)}
-                                            color="error"
-                                            startIcon={<Stop />}
-                                            onClick={() => stop(ctx.row)}
-                                        >{UIText.stop}</Button>
-                                        <Button
-                                            size="small"
-                                            isLoading={downloadingLogPmIds.current.has(ctx.row.pmId)}
-                                            disabled={disableActions}
-                                            color="info"
-                                            variant="outlined"
-                                            startIcon={<Save />}
-                                            onClick={() => downloadLogFile(ctx.row, "out")}
-                                        >Out</Button>
-                                        <Button
-                                            size="small"
-                                            isLoading={downloadingLogPmIds.current.has(ctx.row.pmId)}
-                                            disabled={disableActions}
-                                            color="warning"
-                                            variant="outlined"
-                                            startIcon={<Save />}
-                                            onClick={() => downloadLogFile(ctx.row, "err")}
-                                        >Err</Button>
-                                        <Button
-                                            size="small"
-                                            disabled={session.readonlyMode || disableActions || lockedPmIds.current.has(ctx.row.pmId)}
-                                            color="warning"
-                                            startIcon={<ReceiptLong />}
-                                            onClick={() => flush(ctx.row)}
-                                        >{UIText.flush}</Button>
-                                        <Button
-                                            size="small"
-                                            disabled={session.readonlyMode || disableActions || lockedPmIds.current.has(ctx.row.pmId)}
-                                            color="info"
-                                            startIcon={<AutoDelete />}
-                                            onClick={() => resetCounter(ctx.row)}
-                                        >{UIText.reset}</Button>
-                                        <Button
-                                            size="small"
-                                            disabled={session.readonlyMode || ctx.row.status !== 'stopped' || (disableActions || lockedPmIds.current.has(ctx.row.pmId))}
-                                            color="error"
-                                            startIcon={<DeleteForever />}
-                                        >Delete</Button>
+
+                                        {permissionHelper({
+                                            session, processName: ctx.row.name,
+                                            operation: Permission.RestartProcess
+                                        }) ? (
+                                            <Button
+                                                size="small"
+                                                disabled={session.readonlyMode || disableActions || lockedPmIds.current.has(ctx.row.pmId)}
+                                                color="success"
+                                                startIcon={<RestartAlt />}
+                                                onClick={() => restart(ctx.row)}
+                                            >{UIText.restart}</Button>
+                                        ) : null}
+
+                                        {permissionHelper({
+                                            session, processName: ctx.row.name,
+                                            operation: Permission.StopProcess
+                                        }) ? (
+                                            <Button
+                                                size="small"
+                                                disabled={session.readonlyMode || disableActions || lockedPmIds.current.has(ctx.row.pmId)}
+                                                color="error"
+                                                startIcon={<Stop />}
+                                                onClick={() => stop(ctx.row)}
+                                            >{UIText.stop}</Button>
+                                        ) : null}
+
+                                        {permissionHelper({
+                                            session, processName: ctx.row.name,
+                                            operation: Permission.GetOutputLog
+                                        }) ? (
+                                            <Button
+                                                size="small"
+                                                isLoading={downloadingLogPmIds.current.has(ctx.row.pmId)}
+                                                disabled={disableActions}
+                                                color="info"
+                                                variant="outlined"
+                                                startIcon={<Save />}
+                                                onClick={() => downloadLogFile(ctx.row, "out")}
+                                            >Out</Button>
+                                        ) : null}
+
+                                        {permissionHelper({
+                                            session, processName: ctx.row.name,
+                                            operation: Permission.GetErrorLog
+                                        }) ? (
+                                            <Button
+                                                size="small"
+                                                isLoading={downloadingLogPmIds.current.has(ctx.row.pmId)}
+                                                disabled={disableActions}
+                                                color="warning"
+                                                variant="outlined"
+                                                startIcon={<Save />}
+                                                onClick={() => downloadLogFile(ctx.row, "err")}
+                                            >Err</Button>
+                                        ) : null}
+
+                                        {permissionHelper({
+                                            session, processName: ctx.row.name,
+                                            operation: Permission.FlushProcess
+                                        }) ? (
+                                            <Button
+                                                size="small"
+                                                disabled={session.readonlyMode || disableActions || lockedPmIds.current.has(ctx.row.pmId)}
+                                                color="warning"
+                                                startIcon={<ReceiptLong />}
+                                                onClick={() => flush(ctx.row)}
+                                            >{UIText.flush}</Button>
+                                        ) : null}
+
+                                        {permissionHelper({
+                                            session, processName: ctx.row.name,
+                                            operation: Permission.ResetProcess
+                                        }) ? (
+                                            <Button
+                                                size="small"
+                                                disabled={session.readonlyMode || disableActions || lockedPmIds.current.has(ctx.row.pmId)}
+                                                color="info"
+                                                startIcon={<AutoDelete />}
+                                                onClick={() => resetCounter(ctx.row)}
+                                            >{UIText.reset}</Button>
+                                        ) : null}
+
+                                        {permissionHelper({
+                                            session, processName: ctx.row.name,
+                                            operation: Permission.DeleteProcess
+                                        }) ? (
+                                            <Button
+                                                size="small"
+                                                disabled={session.readonlyMode || ctx.row.status !== 'stopped' || (disableActions || lockedPmIds.current.has(ctx.row.pmId))}
+                                                color="error"
+                                                startIcon={<DeleteForever />}
+                                            >Delete</Button>
+                                        ) : null}
+
                                     </Stack>
                                 ),
                                 align: "center", headerAlign: "center",

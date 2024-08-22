@@ -71,7 +71,8 @@ const keys = [
     "status",
     "failed",
     "close",
-    "none"
+    "none",
+    "stopAll"
 ] as const;
 
 export type UITextKey = typeof keys[number];

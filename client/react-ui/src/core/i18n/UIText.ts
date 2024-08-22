@@ -72,7 +72,8 @@ const UIText = Object.freeze({
     inactive: "Inactive",
     status: "Status",
     close: "Close",
-    none: "None"
+    none: "None",
+    stopAll: "Stop all"
 } satisfies (UITextType | object));
 
 export const resultUIText = (result: OperationResultType) => UIText[result.message as UITextKey] ?? result.message;
