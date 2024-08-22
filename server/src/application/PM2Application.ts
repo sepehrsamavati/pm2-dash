@@ -10,7 +10,7 @@ export default class PM2Application {
 
     constructor(container: ServicesType) {
         this.pm2Service = container.pm2Daemon;
-        
+
         this.pm2Service.connect();
     }
 
@@ -98,11 +98,15 @@ export default class PM2Application {
         if (!path)
             return result.failed("Couldn't get file path");
 
-        const data = await fs.readFile(path);
-        if (!data)
-            return result.failed("Couldn't read file data");
+        try {
+            const data = await fs.readFile(path);
+            result.setData(data).succeeded();
+        } catch (err) {
+            console.error(err);
+            result.failed("Couldn't read file data")
+        }
 
-        return result.setData(data).succeeded();
+        return result;
     }
 
     async readErrorLogFile(opt: Pm2ProcessOperation) {
@@ -115,10 +119,14 @@ export default class PM2Application {
         if (!path)
             return result.failed("Couldn't get file path");
 
-        const data = await fs.readFile(path);
-        if (!data)
-            return result.failed("Couldn't read file data");
+        try {
+            const data = await fs.readFile(path);
+            result.setData(data).succeeded();
+        } catch (err) {
+            console.error(err);
+            result.failed("Couldn't read file data")
+        }
 
-        return result.setData(data).succeeded();
+        return result;
     }
 }
