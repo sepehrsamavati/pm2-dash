@@ -13,10 +13,10 @@ export const dtoValidator = <T extends object>(Model: new () => T) => {
         const instance = createInstance(['GET', 'DELETE'].includes(request.method) ? request.query : request.body);
         const errors = validateSync(instance);
         if (errors.length)
-            reply.status(400).send(errors);
+            return reply.status(400).send(errors);
         else {
             request.locals.dto = instance;
-            done();
+            return done;
         }
     }) satisfies preValidationHookHandler;
 };

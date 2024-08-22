@@ -26,7 +26,7 @@ fastify.addHook('onRequest', function (req, _, done) {
     done();
 });
 
-fastify.post("/login", { preValidation: dtoValidator(LoginDTO) }, async (req) => {
+fastify.post("/login", { preValidation: dtoValidator(LoginDTO) }, async (req, reply) => {
     const payload = req.locals.dto as LoginDTO;
     const result = new OperationResultWithData<string>();
     const loginResult = await services.applications.userApplication.login(payload.username, payload.password);
@@ -38,10 +38,10 @@ fastify.post("/login", { preValidation: dtoValidator(LoginDTO) }, async (req) =>
         result.failed(loginResult.message);
     }
 
-    return result;
+    return reply.send(result);
 });
 
-fastify.get("/user/me", { onRequest: [jwtResolve, authGuard] }, async (req) => {
+fastify.get("/user/me", { onRequest: [jwtResolve, authGuard] }, (req) => {
     return req.locals.user;
 });
 
@@ -50,8 +50,8 @@ fastify.register((instance, _, next) => {
     instance.addHook("onRequest", authGuard);
     instance.addHook("onRequest", accountTypeGuard(AccountType.Admin));
 
-    instance.get("/list", async () => {
-        return await services.applications.userApplication.getAllViewModel();
+    instance.get("/list", async (_, reply) => {
+        return reply.send(await services.applications.userApplication.getAllViewModel());
     });
 
     instance.put("/create", { preValidation: dtoValidator(CreateUserDTO) }, async (req, reply) => {
@@ -62,14 +62,14 @@ fastify.register((instance, _, next) => {
         return reply.send(await services.applications.userApplication.edit(req.locals.dto as EditUserDTO));
     });
 
-    instance.patch("/activate/:id", async (req) => {
+    instance.patch("/activate/:id", async (req, reply) => {
         const id = Number.parseInt((req.params as any)?.id);
-        return await services.applications.userApplication.activate(id);
+        return reply.send(await services.applications.userApplication.activate(id));
     });
 
-    instance.patch("/deactivate/:id", async (req) => {
+    instance.patch("/deactivate/:id", async (req, reply) => {
         const id = Number.parseInt((req.params as any)?.id);
-        return await services.applications.userApplication.deactivate(id);
+        return reply.send(await services.applications.userApplication.deactivate(id));
     });
 
     next();
@@ -84,36 +84,36 @@ fastify.register((instance, _, next) => {
     instance.addHook("onRequest", jwtResolve);
     instance.addHook("onRequest", authGuard);
 
-    instance.get("/list", async (req) => {
-        return await services.applications.pm2Application.getList(req.locals.user);
+    instance.get("/list", async (req, reply) => {
+        return reply.send(await services.applications.pm2Application.getList(req.locals.user));
     });
 
-    instance.post("/restart", { preValidation: dtoValidator(PM2TargetProcessDTO) }, async (req) => {
-        return await services.applications.pm2Application.restart({
+    instance.post("/restart", { preValidation: dtoValidator(PM2TargetProcessDTO) }, async (req, reply) => {
+        return reply.send(await services.applications.pm2Application.restart({
             user: req.locals.user,
             pmId: (req.locals.dto as PM2TargetProcessDTO).pmId
-        });
+        }));
     });
 
-    instance.post("/stop", { preValidation: dtoValidator(PM2TargetProcessDTO) }, async (req) => {
-        return await services.applications.pm2Application.stop({
+    instance.post("/stop", { preValidation: dtoValidator(PM2TargetProcessDTO) }, async (req, reply) => {
+        return reply.send(await services.applications.pm2Application.stop({
             user: req.locals.user,
             pmId: (req.locals.dto as PM2TargetProcessDTO).pmId
-        });
+        }));
     });
 
-    instance.patch("/flush", { preValidation: dtoValidator(PM2TargetProcessDTO) }, async (req) => {
-        return await services.applications.pm2Application.flush({
+    instance.patch("/flush", { preValidation: dtoValidator(PM2TargetProcessDTO) }, async (req, reply) => {
+        return reply.send(await services.applications.pm2Application.flush({
             user: req.locals.user,
             pmId: (req.locals.dto as PM2TargetProcessDTO).pmId
-        });
+        }));
     });
 
-    instance.patch("/reset", { preValidation: dtoValidator(PM2TargetProcessDTO) }, async (req) => {
-        return await services.applications.pm2Application.reset({
+    instance.patch("/reset", { preValidation: dtoValidator(PM2TargetProcessDTO) }, async (req, reply) => {
+        return reply.send(await services.applications.pm2Application.reset({
             user: req.locals.user,
             pmId: (req.locals.dto as PM2TargetProcessDTO).pmId
-        });
+        }));
     });
 
     instance.get("/outFilePath", { preValidation: dtoValidator(PM2TargetProcessDTO) }, async (req, reply) => {
@@ -122,7 +122,7 @@ fastify.register((instance, _, next) => {
             pmId: (req.locals.dto as PM2TargetProcessDTO).pmId
         });
         if (result.data)
-            return await fs.readFile(result.data);
+            return reply.send(await fs.readFile(result.data));
         else
             return reply.status(404);
     });
@@ -133,7 +133,7 @@ fastify.register((instance, _, next) => {
             pmId: (req.locals.dto as PM2TargetProcessDTO).pmId
         });
         if (result.data)
-            return await fs.readFile(result.data);
+            return reply.send(await fs.readFile(result.data));
         else
             return reply.status(404);
     });
