@@ -169,7 +169,7 @@ export default function Index() {
     const flushAll = useCallback(() => {
         setDisableActions(true);
         window.electronAPI
-            .pm2.flush('')
+            .pm2.flush('all')
             .then(res => {
                 if (!res.ok) {
                     session.snackbarProvider(resultUIText(res), { variant: "error" });

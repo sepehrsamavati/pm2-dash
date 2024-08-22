@@ -3,7 +3,7 @@ import { Readable } from "node:stream";
 import { ipcMain, dialog } from "electron";
 import { finished } from "node:stream/promises";
 import ClientSession from "../app/ClientSession";
-import type { ILoginDTO } from "../../../common/types/dto";
+import type { ILoginDTO, IPM2TargetProcess } from "../../../common/types/dto";
 import { Pm2ProcessDescription } from "../../../common/types/pm2";
 import type { ElectronAPI } from "../../../common/types/ComInterface";
 import { OperationResultWithDataType } from "../../../common/types/OperationResult";
@@ -74,7 +74,7 @@ export const initializeIpcHandlers = () => {
 
     ipcMain.handle('pm2:stop', async (_, id: number | string): ReturnType<ElectronAPI['pm2']['stop']> => {
         if (clientSession.connectionType === "HTTP_SERVER") {
-            return await clientSession.httpServerRequest("/pm2/stop", "POST", { id });
+            return await clientSession.httpServerRequest("/pm2/stop", "POST", { pmId: id.toString() } satisfies IPM2TargetProcess);
         } else {
             return await clientSession.pm2Service.stop(id);
         }
@@ -82,7 +82,7 @@ export const initializeIpcHandlers = () => {
 
     ipcMain.handle('pm2:flush', async (_, id: number | string): ReturnType<ElectronAPI['pm2']['flush']> => {
         if (clientSession.connectionType === "HTTP_SERVER") {
-            return await clientSession.httpServerRequest("/pm2/flush", "PATCH", { id });
+            return await clientSession.httpServerRequest("/pm2/flush", "PATCH", { pmId: id.toString() } satisfies IPM2TargetProcess);
         } else {
             return await clientSession.pm2Service.flush(id);
         }
@@ -90,7 +90,7 @@ export const initializeIpcHandlers = () => {
 
     ipcMain.handle('pm2:resetCounter', async (_, id: number | string): ReturnType<ElectronAPI['pm2']['resetCounter']> => {
         if (clientSession.connectionType === "HTTP_SERVER") {
-            return await clientSession.httpServerRequest("/pm2/reset", "PATCH", { id });
+            return await clientSession.httpServerRequest("/pm2/reset", "PATCH", { pmId: id.toString() } satisfies IPM2TargetProcess);
         } else {
             return await clientSession.pm2Service.reset(id);
         }
@@ -122,7 +122,7 @@ export const initializeIpcHandlers = () => {
         if (!saveLocation.canceled && saveLocation.filePath) {
             if (clientSession.connectionType === "HTTP_SERVER") {
                 try {
-                    const response = await clientSession.initHttpServerRequest(`/pm2/${args.type === "err" ? "err" : "out"}FilePath?id=${args.pmId}`, "GET");
+                    const response = await clientSession.initHttpServerRequest(`/pm2/${args.type === "err" ? "err" : "out"}FilePath?pmId=${args.pmId}`, "GET");
 
                     const dest = fs.createWriteStream(saveLocation.filePath);
                     if (response.body) {

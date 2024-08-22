@@ -73,8 +73,11 @@ export default class PM2Application {
     async flush(opt: Pm2ProcessOperation) {
         const result = new OperationResult();
 
-        if (this.hasPermission(Permission.FlushProcess, opt))
+        if (this.hasPermission(Permission.FlushProcess, opt)) {
+            if (opt.pmId === "all")
+                opt.pmId = ""; //should be empty to flush all
             return await this.pm2Service.flush(opt.pmId);
+        }
 
         return result.failed("noAccess");
     }
