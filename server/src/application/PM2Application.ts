@@ -56,7 +56,7 @@ export default class PM2Application {
         const result = new OperationResult();
 
         if (this.hasPermission(Permission.StopProcess, opt))
-            return await this.pm2Service.restart(opt.pmId);
+            return await this.pm2Service.stop(opt.pmId);
 
         return result.failed("noAccess");
     }
@@ -97,7 +97,7 @@ export default class PM2Application {
         if (!this.hasPermission(Permission.GetOutputLog, opt))
             return result.failed("noAccess");
 
-        const path = await this.pm2Service.getLogPath(opt.pmId, "err");
+        const path = await this.pm2Service.getLogPath(opt.pmId, "out");
         if (!path)
             return result.failed("Couldn't get file path");
 
