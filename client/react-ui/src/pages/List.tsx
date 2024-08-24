@@ -3,15 +3,16 @@ import { Permission } from "../types/enums";
 import RoleHOC from "../components/RoleHOC";
 import { useSession } from "../core/Session";
 import { AccountType } from "../types/enums";
+import DataGrid from "../components/DataGrid";
 import UIText, { resultUIText } from "../core/i18n/UIText";
 import type { Pm2ProcessDescription } from "@/common/types/pm2";
 import permissionHelper from "../core/helpers/permissionHelper";
 import { useCallback, useEffect, useRef, useState } from "react";
+import Android12Switch from "../components/inputs/Android12Switch";
 import ContentContainer from "../components/layout/ContentContainer";
-import { Badge, Box, Chip, Divider, Grid, Stack, Switch, Typography } from "@mui/material";
 import { msToHumanReadable, bytesToSize } from "../core/helpers/toHumanReadable";
+import { Badge, Box, Chip, Divider, Grid, Stack, Typography } from "@mui/material";
 import { AutoDelete, CheckCircle, HighlightOff, ReceiptLong, Refresh, RestartAlt, Save, SmsFailed, Stop } from "@mui/icons-material";
-import DataGrid from "../components/DataGrid";
 
 const statusToColor = (status: string) => {
     let color: 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' = "error";
@@ -238,7 +239,7 @@ export default function Index() {
                             <Stack>
                                 <Box marginBottom={1} paddingInlineStart={1}>
                                     {UIText.autoRefresh}
-                                    <Switch
+                                    <Android12Switch
                                         color="info"
                                         checked={autoUpdateList}
                                         onClick={() => setAutoUpdateList(current => !current)}

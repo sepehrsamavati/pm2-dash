@@ -7,8 +7,9 @@ import { useNavigate } from "react-router-dom";
 import { useSession } from "../../core/Session";
 import { AccountType } from "../../types/enums";
 import { Menu as MenuIcon } from "@mui/icons-material";
+import Android12Switch from "../inputs/Android12Switch";
 import { CancelPresentation, Http, Terminal } from "@mui/icons-material";
-import { AppBar as MuiAppBar, Toolbar, AppBarProps as MuiAppBarProps, styled, Stack, Chip, Tooltip, Box, Switch, IconButton } from "@mui/material";
+import { AppBar as MuiAppBar, Toolbar, AppBarProps as MuiAppBarProps, styled, Stack, Chip, Tooltip, Box, IconButton } from "@mui/material";
 
 interface AppBarProps extends MuiAppBarProps {
     open?: boolean;
@@ -99,7 +100,7 @@ export default function Header(props?: {
                 <Box sx={{ flexGrow: 1 }} />
                 <Box>
                     {UIText.readonlyMode}
-                    <Switch
+                    <Android12Switch
                         color="success"
                         checked={session.readonlyMode}
                         onClick={() => {
