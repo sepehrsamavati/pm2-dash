@@ -21,6 +21,6 @@ export enum Permission {
 }
 
 export enum ClientServerInitHello {
-    ClientKey = "repeat_after_me",
-    ServerKey = "here_you_go"
+    ClientKey = "repeat-after-me",
+    ServerKey = "here-you-go"
 }
