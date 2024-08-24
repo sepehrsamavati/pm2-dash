@@ -1,8 +1,13 @@
 import type { IPm2Connection } from "../types/pm2Connection";
+import type { Pm2ProcessDescription } from "@/common/types/pm2";
 import type { Pm2ConnectionType } from "@/common/types/ComInterface";
 import type { OperationResultType } from "@/common/types/OperationResult";
 
-export class Pm2LocalIpcConnection implements IPm2Connection {
+abstract class Pm2ConnectionBase implements Partial<IPm2Connection> {
+    public cachedList: Pm2ProcessDescription[] = [];
+}
+
+export class Pm2LocalIpcConnection extends Pm2ConnectionBase implements IPm2Connection {
     private _isConnected = false;
     get isConnected() {
         return this._isConnected;
@@ -31,7 +36,7 @@ export class Pm2LocalIpcConnection implements IPm2Connection {
     }
 }
 
-export class Pm2HttpServerConnection implements IPm2Connection {
+export class Pm2HttpServerConnection extends Pm2ConnectionBase implements IPm2Connection {
     private _isConnected = false;
     get isConnected() {
         return this._isConnected;

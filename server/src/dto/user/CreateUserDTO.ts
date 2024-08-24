@@ -2,14 +2,14 @@ import { Expose, Type } from "class-transformer";
 import { ICreateUserDTO } from "../../../../common/types/dto";
 import { UserProcessPermission } from "../../../../common/types/user";
 import { AccountType, Permission } from "../../../../common/types/enums";
-import { IsArray, IsBoolean, IsDefined, IsEnum, IsInt, IsLowercase, IsString, MaxLength, MinLength, ValidateNested } from "class-validator";
+import { IsArray, IsDefined, IsEnum, IsInt, IsLowercase, IsString, MaxLength, MinLength, NotEquals, ValidateNested } from "class-validator";
 
 class UserProcessPermissionDTO implements UserProcessPermission {
     @Expose()
     @Type(() => String)
+    @NotEquals("all")
     @IsString()
     @IsDefined()
-    @IsLowercase()
     @MinLength(1)
     @MaxLength(100)
     processName!: string;
@@ -28,8 +28,8 @@ export class UpsertUserDTO {
     @IsString()
     @IsDefined()
     @IsLowercase()
-    @MinLength(1)
-    @MaxLength(100)
+    @MinLength(3)
+    @MaxLength(12)
     username!: string;
 
     @Expose()

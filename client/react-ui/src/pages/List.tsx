@@ -69,6 +69,8 @@ export default function Index() {
 
                 if (Array.isArray(res.data)) {
                     setList(res.data);
+                    if (session.pm2Connection)
+                        session.pm2Connection.cachedList = res.data;
                 } else if (typeof res === "object") {
                     session.snackbarProvider(resultUIText(res), { variant: "warning" });
                 }

@@ -1,9 +1,10 @@
-import { Box, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, Grid, IconButton, InputLabel, MenuItem, OutlinedInput, Select, Stack } from "@mui/material";
+import { Autocomplete, Box, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, Grid, IconButton, InputLabel, MenuItem, OutlinedInput, Select, Stack } from "@mui/material";
 import { useFieldArray, useForm } from "react-hook-form";
 import { Add, Close, Delete } from "@mui/icons-material";
 import UIText from "../../core/i18n/UIText";
 import Button from "../../components/Button";
 import { Permission } from "../../types/enums";
+import { useSession } from "../../core/Session";
 import { AccountType } from "../../types/enums";
 import { UserInfoViewModel } from "@/common/types/user";
 import TextField from "../../components/inputs/TextField";
@@ -18,7 +19,7 @@ import { ForwardedRef, forwardRef, useCallback, useId, useImperativeHandle, useR
 type FormType = ICreateUserDTO & IEditUserDTO;
 
 const validations = {
-    username: new FormValidationHelper<FormType, "username">().isRequired().maxLength(20).resolve(),
+    username: new FormValidationHelper<FormType, "username">().isRequired().minLength(3).maxLength(12).resolve(),
     password: new FormValidationHelper<FormType, "password">().isRequired().maxLength(32).resolve(),
     type: new FormValidationHelper<FormType, "type">().isRequired().isNumber().resolve(),
 
@@ -34,6 +35,7 @@ export type CreateEditUserDialogRef = {
 const CreateEditUserDialog = forwardRef((props: {
     afterUpsert: () => void;
 }, ref: ForwardedRef<CreateEditUserDialogRef>) => {
+    const session = useSession();
     const titleId = useId();
     const descriptionId = useId();
     const formId = useId();
@@ -123,6 +125,7 @@ const CreateEditUserDialog = forwardRef((props: {
                                 <TextField
                                     label={UIText.username}
                                     form={formRef}
+                                    inputProps={{ style: { textTransform: "lowercase" } }}
                                     defaultValue={form.getValues("username")}
                                     formRegister={form.register("username", validations.username)}
                                 />
@@ -155,7 +158,7 @@ const CreateEditUserDialog = forwardRef((props: {
                                             label={UIText.password}
                                             form={formRef}
                                             type="password"
-                                            formRegister={form.register("password", validations.username)}
+                                            formRegister={form.register("password", validations.password)}
                                             onChange={e => setPasswordRepeatMismatch(e.target.value !== passwordRepeat)}
                                         />
                                     </Grid>
@@ -195,10 +198,18 @@ const CreateEditUserDialog = forwardRef((props: {
                                         {processPermissions.fields.map((item, index) => (
                                             <Grid container key={index} alignItems="center">
                                                 <Grid item xs={4}>
-                                                    <TextField
-                                                        label={UIText.processName}
-                                                        error={Boolean(form.formState.errors?.processPermissions?.at ? form.formState.errors.processPermissions.at(index)?.processName?.message : false)}
-                                                        formRegister={form.register(`processPermissions.${index}.processName` as const, validations.processName)}
+                                                    <Autocomplete
+                                                        disablePortal
+                                                        options={(session.pm2Connection?.cachedList ?? []).map(item => item.name)}
+                                                        defaultValue={form.getValues(`processPermissions.${index}.processName` as const)}
+                                                        renderInput={(params) => (
+                                                            <TextField
+                                                                {...params}
+                                                                label={UIText.processName}
+                                                                error={Boolean(form.formState.errors?.processPermissions?.at ? form.formState.errors.processPermissions.at(index)?.processName?.message : false)}
+                                                                formRegister={form.register(`processPermissions.${index}.processName` as const, validations.processName)}
+                                                            />
+                                                        )}
                                                     />
                                                 </Grid>
                                                 <Grid item xs={7}>
