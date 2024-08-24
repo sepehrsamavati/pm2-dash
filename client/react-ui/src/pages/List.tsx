@@ -272,7 +272,6 @@ export default function Index() {
                     <DataGrid<Pm2ProcessDescription>
                         disableColumnResize
                         disableRowSelectionOnClick
-                        hideFooter
                         autoHeight
                         paginationMode="client"
                         localeText={{

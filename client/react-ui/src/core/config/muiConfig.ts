@@ -6,7 +6,6 @@ const ThemeNames = ['light', 'dark'] as const;
 export type ThemeName = typeof ThemeNames[number];
 
 export const muiThemeOptions = (theme: ThemeName = 'dark') => createTheme({
-    direction: 'rtl',
     palette: {
         mode: theme,
         primary: {
