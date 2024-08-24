@@ -1,18 +1,20 @@
-import { Chip, Grid, Stack } from "@mui/material";
 import UIText from "../../core/i18n/UIText";
+import Button from "../../components/Button";
+import RoleHOC from "../../components/RoleHOC";
+import { useSession } from "../../core/Session";
 import { AccountType } from "../../types/enums";
 import DataGrid from "../../components/DataGrid";
+import { Chip, Grid, Stack } from "@mui/material";
+import RoundedBox from "../../components/RoundedBox";
 import { UserInfoViewModel } from "@/common/types/user";
+import { AddBoxOutlined, Edit } from "@mui/icons-material";
 import DataGridWrapper from "../../components/DataGridWrapper";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ContentContainer from "../../components/layout/ContentContainer";
-import Button from "../../components/Button";
-import { AddBoxOutlined, Edit } from "@mui/icons-material";
-import RoundedBox from "../../components/RoundedBox";
-import RoleHOC from "../../components/RoleHOC";
 import CreateEditUserDialog, { type CreateEditUserDialogRef } from "./CreateEditUserDialog";
 
 export default function UserList() {
+    const session = useSession();
     const initialized = useRef(false);
     const [isLoading, setIsLoading] = useState(false);
     const [data, setData] = useState<UserInfoViewModel[]>();
@@ -73,6 +75,7 @@ export default function UserList() {
                             <Button
                                 size="small"
                                 color="success"
+                                disabled={session.readonlyMode}
                                 onClick={() => createEditUserDialogRef.current?.openCreateForm()}
                                 startIcon={<AddBoxOutlined />}
                             >{UIText.createUser}</Button>
@@ -113,11 +116,11 @@ export default function UserList() {
                                 <Stack direction="row" padding={1} spacing={2} justifyContent="center">
                                     {ctx.row.type !== AccountType.Admin ? (
                                         <>
-                                            <Button disabled={disableActions} size="small" color="warning" startIcon={<Edit />} onClick={() => createEditUserDialogRef.current?.openEditForm(ctx.row)}>{UIText.edit}</Button>
+                                            <Button disabled={session.readonlyMode || disableActions} size="small" color="warning" startIcon={<Edit />} onClick={() => createEditUserDialogRef.current?.openEditForm(ctx.row)}>{UIText.edit}</Button>
                                             {
                                                 ctx.row.isActive
-                                                    ? <Button onClick={() => deactivate(ctx.row.id)} disabled={disableActions} size="small" color="error">{UIText.deactivate}</Button>
-                                                    : <Button onClick={() => activate(ctx.row.id)} disabled={disableActions} size="small" color="success">{UIText.activate}</Button>
+                                                    ? <Button onClick={() => deactivate(ctx.row.id)} disabled={session.readonlyMode || disableActions} size="small" color="error">{UIText.deactivate}</Button>
+                                                    : <Button onClick={() => activate(ctx.row.id)} disabled={session.readonlyMode || disableActions} size="small" color="success">{UIText.activate}</Button>
                                             }
                                         </>
                                     ) : null}
