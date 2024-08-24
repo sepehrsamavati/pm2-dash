@@ -279,10 +279,12 @@ export default function Index() {
                         }}
                         columns={[
                             {
-                                field: 'name',
+                                field: 'pmId',
+                                headerName: UIText.name,
                                 flex: 20,
                                 minWidth: 250,
-                                renderCell: ctx => <><Chip size="small" label={`#${ctx.row.pmId}`} /> {ctx.value}</>,
+                                sortable: true,
+                                renderCell: ctx => <><Chip size="small" label={`#${ctx.row.pmId}`} /> {ctx.row.name}</>,
                             },
                             {
                                 field: 'status',
@@ -308,39 +310,42 @@ export default function Index() {
                             },
                             {
                                 field: 'restartCount',
-                                sortable: false,
                                 flex: 8,
+                                sortable: true,
                                 headerName: UIText.restarts,
                                 renderCell: ctx => <Typography component="span" fontFamily="monospace">{ctx.value}</Typography>,
                                 minWidth: 90,
                             },
                             {
-                                field: 'cpu' as keyof Pm2ProcessDescription,
+                                field: 'cpuUsage' as keyof Pm2ProcessDescription,
+                                sortable: true,
                                 flex: 5,
+                                headerName: UIText.cpuPercentage,
+                                minWidth: 100,
+                                valueGetter: (_, ctx) => ctx.usage?.cpu,
                                 renderCell: ctx => {
                                     if (!ctx.row.usage) return '-';
                                     const percentUsage = ctx.row.usage.cpu;
                                     return <Chip variant={highlightMaxNumber(ctx.row.usage.cpu, list?.map(x => x.usage?.cpu))} color={percentUsage > 50 ? "error" : (percentUsage > 10 ? "warning" : "info")} label={ctx.row.usage?.cpu} />;
                                 },
-                                sortable: false,
-                                headerName: UIText.cpuPercentage,
-                                minWidth: 100,
                             },
                             {
-                                field: 'memory' as keyof Pm2ProcessDescription,
+                                field: 'memoryUsage' as keyof Pm2ProcessDescription,
+                                sortable: true,
                                 flex: 10,
+                                headerName: UIText.memoryMegabyteUsage,
+                                minWidth: 150,
+                                valueGetter: (_, ctx) => ctx.usage?.memory,
                                 renderCell: ctx => {
                                     if (!ctx.row.usage) return '-';
                                     const ramUsage = ctx.row.usage.memory;
                                     return <Chip variant={highlightMaxNumber(ctx.row.usage.memory, list?.map(x => x.usage?.memory))} color={ramUsage > 1024e6 ? "error" : (ramUsage > 300e6 ? "warning" : "info")} label={bytesToSize(ramUsage)} />;
                                 },
-                                sortable: false,
-                                headerName: UIText.memoryMegabyteUsage,
-                                minWidth: 150,
                             },
                             {
                                 field: 'startTime',
                                 headerName: UIText.uptime,
+                                sortable: true,
                                 minWidth: 80,
                                 flex: 7,
                                 renderCell: ctx => <Typography component="span" fontFamily="monospace">{ctx.row.status === 'online' ? msToHumanReadable(Date.now() - ctx.row.startTime) : '-'}</Typography>,
