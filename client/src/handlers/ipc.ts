@@ -66,7 +66,7 @@ export const initializeIpcHandlers = () => {
 
     ipcMain.handle('pm2:restart', async (_, id: number | string): ReturnType<ElectronAPI['pm2']['restart']> => {
         if (clientSession.connectionType === "HTTP_SERVER") {
-            return await clientSession.httpServerRequest("/pm2/restart", "POST", { id });
+            return await clientSession.httpServerRequest("/pm2/restart", "POST", { pmId: id.toString() } satisfies IPM2TargetProcess);
         } else {
             return await clientSession.pm2Service.restart(id);
         }
