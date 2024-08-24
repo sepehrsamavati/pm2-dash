@@ -94,6 +94,7 @@ const CreateEditUserDialog = forwardRef((props: {
             setShow(true);
         },
         openEditForm: (user) => {
+            form.unregister("password");
             form.setValue("id", user.id);
             form.setValue("username", user.username);
             form.setValue("type", user.type);
