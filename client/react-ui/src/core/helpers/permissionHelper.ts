@@ -6,6 +6,9 @@ export default function permissionHelper(options: {
     operation: Permission;
     processName: string;
 }) {
+    if (options.session.pm2Connection?.name === "LOCAL_IPC")
+        return true;
+
     if ([
         AccountType.Admin,
         AccountType.Manager

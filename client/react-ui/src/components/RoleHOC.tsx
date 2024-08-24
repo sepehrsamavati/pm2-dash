@@ -10,7 +10,7 @@ export default function RoleHOC(props?: {
     const session = useSession();
 
     return hasAccess({
-        user: session.user?.type,
+        session: session,
         page: props?.roles,
         disableAuto: props?.disableAuto
     }) ? <>{props?.children}</> : null;

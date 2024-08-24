@@ -16,7 +16,7 @@ export default function MainLayout() {
     const closeMenuRequestHandler = useCallback(() => setMenuIsOpen(false), []);
 
     useEffect(() => {
-        if(session.user?.type !== AccountType.Admin) {
+        if (session.user?.type !== AccountType.Admin) {
             setMenuIsOpen(false);
         }
     }, [session.user?.type]);
@@ -43,10 +43,12 @@ export default function MainLayout() {
             >
                 {session.pm2Connection ? <Header menuIsOpen={menuIsOpen} openMenuRequest={openMenuRequestHandler} /> : null}
                 <main>
-                    <RoleHOC roles={AccountType.Admin}>
-                        <SideMenu isOpen={menuIsOpen} closeCallback={closeMenuRequestHandler} />
-                        <SideMenuBackdrop visible={menuIsOpen} closeMenu={closeMenuRequestHandler} />
-                    </RoleHOC>
+                    {session.pm2Connection?.name === "HTTP_SERVER" ? (
+                        <RoleHOC roles={AccountType.Admin}>
+                            <SideMenu isOpen={menuIsOpen} closeCallback={closeMenuRequestHandler} />
+                            <SideMenuBackdrop visible={menuIsOpen} closeMenu={closeMenuRequestHandler} />
+                        </RoleHOC>
+                    ) : null}
                     <Outlet />
                 </main>
             </Container>

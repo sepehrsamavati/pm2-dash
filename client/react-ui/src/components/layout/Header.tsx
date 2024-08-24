@@ -61,20 +61,22 @@ export default function Header(props?: {
     return (
         <AppBar position="fixed" open={open}>
             <Toolbar>
-                <RoleHOC roles={AccountType.Admin}>
-                    <IconButton
-                        color="inherit"
-                        aria-label="open drawer"
-                        onClick={() => props?.openMenuRequest && props.openMenuRequest()}
-                        edge="start"
-                        sx={{
-                            marginInlineEnd: 5,
-                            ...(open && { display: 'none' }),
-                        }}
-                    >
-                        <MenuIcon />
-                    </IconButton>
-                </RoleHOC>
+                {session.pm2Connection?.name === "HTTP_SERVER" ? (
+                    <RoleHOC roles={AccountType.Admin}>
+                        <IconButton
+                            color="inherit"
+                            aria-label="open drawer"
+                            onClick={() => props?.openMenuRequest && props.openMenuRequest()}
+                            edge="start"
+                            sx={{
+                                marginInlineEnd: 5,
+                                ...(open && { display: 'none' }),
+                            }}
+                        >
+                            <MenuIcon />
+                        </IconButton>
+                    </RoleHOC>
+                ) : null}
                 <Stack direction="row" alignItems="center" spacing={2}>
                     {session.pm2Connection ? (
                         <Stack fontSize={"0.9em"} paddingBlock={1} direction="column" spacing={1} alignItems="start" justifyContent="space-evenly">

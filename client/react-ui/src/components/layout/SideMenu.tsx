@@ -129,7 +129,7 @@ export default function SideMenu(props: {
             <List disablePadding component="nav">
 
                 {menuLinks
-                    .filter(link => hasAccess({ user: session.user?.type, page: link.roles, disableAuto: true }))
+                    .filter(link => hasAccess({ session, page: link.roles, disableAuto: true }))
                     .map((link, index) => <LinkItem key={index} level={0} {...link} closeCallback={props?.closeCallback} isCollapsed={props.isOpen} index={index} />)}
             </List>
         </Drawer>
