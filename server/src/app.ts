@@ -5,6 +5,7 @@ import LoginDTO from './dto/LoginDTO';
 import { signToken } from './utils/jwt';
 import services from './servicesInstance';
 import { jwtResolve } from './middlewares/jwt';
+import EditUserDTO from "./dto/user/EditUserDTO";
 import CreateUserDTO from "./dto/user/CreateUserDTO";
 import { dtoValidator } from './middlewares/dtoValidator';
 import type { UserViewModel } from '../../common/types/user';
@@ -12,7 +13,7 @@ import PM2TargetProcessDTO from "./dto/pm2/PM2TargetProcessDTO";
 import { accountTypeGuard, authGuard } from "./middlewares/guards";
 import { AccountType, ClientServerInitHello } from "../../common/types/enums";
 import { OperationResultWithData } from '../../common/models/OperationResult';
-import EditUserDTO from "./dto/user/EditUserDTO";
+import { isUUID } from "class-validator";
 
 const fastify = Fastify({
     logger: true,
@@ -77,7 +78,8 @@ fastify.register((instance, _, next) => {
 
 fastify.get("/hello", (req, reply) => {
     const shouldRepeat = req.headers[ClientServerInitHello.ClientKey];
-    return reply.header(ClientServerInitHello.ServerKey, shouldRepeat).send({});
+    const isValid = typeof shouldRepeat === "string" && isUUID(shouldRepeat, "4");
+    return reply.header(isValid ? ClientServerInitHello.ServerKey : "InvalidValue", shouldRepeat).send({});
 });
 
 fastify.register((instance, _, next) => {
