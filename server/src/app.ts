@@ -1,8 +1,9 @@
-import "./config";
+import config from "./config";
 import Fastify from 'fastify';
 import fs from 'node:fs/promises';
 import LoginDTO from './dto/LoginDTO';
 import { signToken } from './utils/jwt';
+import { isUUID } from "class-validator";
 import services from './servicesInstance';
 import { jwtResolve } from './middlewares/jwt';
 import EditUserDTO from "./dto/user/EditUserDTO";
@@ -13,7 +14,6 @@ import PM2TargetProcessDTO from "./dto/pm2/PM2TargetProcessDTO";
 import { accountTypeGuard, authGuard } from "./middlewares/guards";
 import { AccountType, ClientServerInitHello } from "../../common/types/enums";
 import { OperationResultWithData } from '../../common/models/OperationResult';
-import { isUUID } from "class-validator";
 
 const fastify = Fastify({
     logger: true,
@@ -144,7 +144,7 @@ fastify.register((instance, _, next) => {
 }, { prefix: "pm2" });
 
 fastify.listen({
-    port: 3005
+    port: config.serverPort
 })
     .then(() => {
         console.log("PM2 service server running...");
