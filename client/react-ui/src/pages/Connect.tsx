@@ -188,19 +188,15 @@ function HttpServerForm(props: {
                         value={hostname}
                         label={UIText.hostname}
                         disabled={props.isLoading}
-                        onBlur={() => hostname === "" && setHostname("localhost")}
-                        onChange={e => {
-                            let _hostname = e.target.value;
-
+                        onBlur={() => {
                             try {
-                                const url = new URL(`http://${_hostname}`);
-                                _hostname = url.hostname;
+                                const url = new URL(`http://${hostname}`);
+                                setHostname(url.hostname);
                             } catch {
-                                return setHostname("");
+                                return setHostname("localhost");
                             }
-
-                            setHostname(_hostname);
                         }}
+                        onChange={e => setHostname(e.target.value)}
                     />
                 </Grid>
                 <Grid item>
