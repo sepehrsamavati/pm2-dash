@@ -16,7 +16,6 @@ const createWindow = () => {
         show: false
     });
 
-    // mainWindow.loadFile(path.join(__dirname, "../public/index.html"));
 
     ipcMain.on("showMainFrame", () => {
         mainWindow.show();
@@ -27,7 +26,8 @@ const createWindow = () => {
         app.quit();
     });
 
-    mainWindow.loadURL("http://localhost:3000");
+    // mainWindow.loadURL("http://localhost:3000");
+    mainWindow.loadFile(path.join(app.getAppPath(), "./build/react-ui/index.html"));
 };
 
 app.whenReady().then(() => {

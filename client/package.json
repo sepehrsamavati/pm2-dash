@@ -1,21 +1,38 @@
 {
   "name": "pm2-gui",
   "version": "0.1.0",
-  "description": "",
+  "description": "Graphical user interface for PM2 process manager",
   "main": "./build/client/src/app/main.js",
   "scripts": {
     "start": "electron .",
-    "build": "tsc"
+    "build": "tsc",
+    "package": "electron-builder build --win --publish never"
   },
   "keywords": [],
-  "author": "",
+  "author": "Sepehr Samavati",
+  "repository": "https://github.com/sepehrsamavati/pm2-gui.git",
   "license": "ISC",
   "devDependencies": {
     "electron": "^31.3.1",
+    "electron-builder": "^24.13.3",
     "tsx": "^4.17.0",
     "typescript": "^5.5.4"
   },
   "dependencies": {
     "pm2": "^5.4.2"
+  },
+  "build": {
+    "productName": "PM2 GUI",
+    "win": {
+      "target": "nsis"
+    },
+    "files": [
+      "./build/**/*"
+    ],
+    "publish": {
+      "provider": "github",
+      "private": true,
+      "owner": "Github Owner"
+    }
   }
 }

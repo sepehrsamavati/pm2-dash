@@ -131,6 +131,6 @@ dist
 
 build
 public
-!client/public
+!client/react-ui/public
 
 *.sqlite3
