@@ -7,11 +7,11 @@ import constants from "../core/config/constants";
 import AppVersion from "../components/AppVersion";
 import UIText, { resultUIText } from "../core/i18n/UIText";
 import CenteredContent from "../components/CenteredContent";
-import { ChevronRight, ClearAll, Http, Terminal } from "@mui/icons-material";
 import type { Pm2ConnectionType } from "@/common/types/ComInterface";
+import { upsertTargetServer } from "../core/helpers/connectionHistory";
+import { ChevronRight, ClearAll, Http, Terminal } from "@mui/icons-material";
 import { Pm2HttpServerConnection, Pm2LocalIpcConnection } from "../core/Pm2Connection";
 import { Box, FormControl, Grid, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
-import { upsertTargetServer } from "../core/helpers/connectionHistory";
 
 function LocalIpcForm(props: {
     isLoading: boolean;
@@ -53,7 +53,7 @@ function HttpServerForm(props: {
     const defaultTargetServer = useMemo(() => {
         const history = session.localStorage.data.history;
 
-        let protocol = "http", hostname = "localhost", port = "80", accessToken = "";
+        let protocol = "http", hostname = "localhost", port = "80";
 
         try {
             const server = history.at(history.length - 1);
@@ -62,7 +62,6 @@ function HttpServerForm(props: {
                 protocol = url.protocol.split(':')[0];
                 hostname = url.hostname;
                 port = url.port || "80";
-                accessToken = server.accessToken;
             }
         } catch {
             session.localStorage.data.history = [];
@@ -70,10 +69,9 @@ function HttpServerForm(props: {
         }
 
         return {
-            protocol, hostname, port, accessToken
+            protocol, hostname, port
         };
     }, [session]);
-    const [accessToken, setAccessToken] = useState(defaultTargetServer.accessToken);
     const [protocol, setProtocol] = useState(defaultTargetServer.protocol);
     const [hostname, setHostname] = useState(defaultTargetServer.hostname);
     const [port, setPort] = useState(defaultTargetServer.port);
@@ -85,15 +83,13 @@ function HttpServerForm(props: {
         connection.protocol = protocol as typeof connection.protocol;
         connection.hostname = hostname;
         connection.port = port;
-        connection.accessToken = accessToken;
 
         connection.connect()
             .then(res => {
                 if (res.ok) {
-                    navigate("/List");
+                    navigate("/Login");
                     session.localStorage.data.history = upsertTargetServer(session.localStorage.data.history, {
-                        baseUrl: `${protocol}://${hostname}:${port}`,
-                        accessToken
+                        baseUrl: `${protocol}://${hostname}:${port}`
                     });
                     session.localStorage.rewrite();
                     session.pm2Connection = connection;
@@ -102,7 +98,7 @@ function HttpServerForm(props: {
                 }
             })
             .finally(() => props.lockForm(false));
-    }, [props, session, navigate, protocol, hostname, port, accessToken]);
+    }, [props, session, navigate, protocol, hostname, port]);
 
     return (
         <form
@@ -130,7 +126,6 @@ function HttpServerForm(props: {
                                                 setProtocol(url.protocol.split(':')[0]);
                                                 setHostname(url.hostname);
                                                 setPort(url.port || "80");
-                                                setAccessToken(item.accessToken);
                                             } catch { }
                                         }
                                     }}
@@ -206,15 +201,6 @@ function HttpServerForm(props: {
 
                             setHostname(_hostname);
                         }}
-                    />
-                </Grid>
-                <Grid item xs={12}>
-                    <TextField
-                        fullWidth
-                        value={accessToken}
-                        label={UIText.token}
-                        disabled={props.isLoading}
-                        onChange={e => setAccessToken(e.target.value)}
                     />
                 </Grid>
                 <Grid item>

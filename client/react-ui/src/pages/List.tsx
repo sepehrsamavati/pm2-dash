@@ -1,13 +1,19 @@
-import UIText, { resultUIText } from "../core/i18n/UIText";
 import Button from "../components/Button";
-import { DataGrid } from "@mui/x-data-grid";
+import { Permission } from "../types/enums";
+import RoleHOC from "../components/RoleHOC";
 import { useSession } from "../core/Session";
+import { AccountType } from "../types/enums";
+import DataGrid from "../components/DataGrid";
+import UIText, { resultUIText } from "../core/i18n/UIText";
 import type { Pm2ProcessDescription } from "@/common/types/pm2";
+import permissionHelper from "../core/helpers/permissionHelper";
 import { useCallback, useEffect, useRef, useState } from "react";
+import Android12Switch from "../components/inputs/Android12Switch";
 import ContentContainer from "../components/layout/ContentContainer";
-import { Badge, Box, Chip, Divider, Grid, Stack, Switch } from "@mui/material";
 import { msToHumanReadable, bytesToSize } from "../core/helpers/toHumanReadable";
-import { AutoDelete, CheckCircle, DeleteForever, HighlightOff, ReceiptLong, Refresh, RestartAlt, Save, SmsFailed, Stop } from "@mui/icons-material";
+import { Badge, Box, Chip, Divider, Grid, Stack, Typography } from "@mui/material";
+import { AutoDelete, CheckCircle, HighlightOff, ReceiptLong, Refresh, RestartAlt, Save, SmsFailed, Stop } from "@mui/icons-material";
+import SelectOption from "../components/inputs/SelectOption";
 
 const statusToColor = (status: string) => {
     let color: 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' = "error";
@@ -45,6 +51,7 @@ export default function Index() {
     const [lastListRefreshResponseTime, setLastListRefreshResponseTime] = useState(0);
     const [autoUpdateList, setAutoUpdateList] = useState(true);
     const isLoadingList = useRef(false);
+    const [autoRefreshInterval, setAutoRefreshInterval] = useState(5000);
     const [disableActions, setDisableActions] = useState(false);
     const [list, setList] = useState<Pm2ProcessDescription[]>();
     const lockedPmIds = useRef<Set<Pm2ProcessDescription['pmId']>>(new Set());
@@ -63,8 +70,10 @@ export default function Index() {
                 const end = performance.now();
                 setLastListRefreshResponseTime(Math.round(end - start));
 
-                if (Array.isArray(res)) {
-                    setList(res);
+                if (Array.isArray(res.data)) {
+                    setList(res.data);
+                    if (session.pm2Connection)
+                        session.pm2Connection.cachedList = res.data;
                 } else if (typeof res === "object") {
                     session.snackbarProvider(resultUIText(res), { variant: "warning" });
                 }
@@ -150,10 +159,22 @@ export default function Index() {
             });
     }, [refreshUI, getList, session]);
 
+    const stopAll = useCallback(() => {
+        setDisableActions(true);
+        window.electronAPI
+            .pm2.stop('all')
+            .then(res => {
+                if (!res.ok) {
+                    session.snackbarProvider(resultUIText(res), { variant: "error" });
+                }
+            })
+            .finally(() => setDisableActions(false));
+    }, [session]);
+
     const flushAll = useCallback(() => {
         setDisableActions(true);
         window.electronAPI
-            .pm2.flush('')
+            .pm2.flush('all')
             .then(res => {
                 if (!res.ok) {
                     session.snackbarProvider(resultUIText(res), { variant: "error" });
@@ -194,11 +215,11 @@ export default function Index() {
 
     useEffect(() => {
         autoUpdateList && getList();
-        const timer = setInterval(() => autoUpdateList && getList(), 5e3);
+        const timer = setInterval(() => autoUpdateList && getList(), autoRefreshInterval);
         return () => {
             clearInterval(timer);
         };
-    }, [getList, autoUpdateList]);
+    }, [getList, autoUpdateList, autoRefreshInterval]);
 
     return (
         <ContentContainer>
@@ -206,19 +227,38 @@ export default function Index() {
                 <Grid item xs={12}>
                     <Grid container spacing={1} justifyContent="space-between">
                         <Grid item>
-                            <Stack direction="row" spacing={1} divider={<Divider orientation="vertical" flexItem />}>
-                                <Button onClick={flushAll} variant="outlined" disabled={session.readonlyMode || disableActions} color="warning">{UIText.flushAll}</Button>
-                                <Button onClick={resetCounterAll} variant="outlined" disabled={session.readonlyMode || disableActions} color="info">{UIText.resetAll}</Button>
-                            </Stack>
+                            <RoleHOC roles={AccountType.Manager}>
+                                <Stack direction="column" spacing={1}>
+                                    <Stack direction="row" spacing={1} divider={<Divider orientation="vertical" flexItem />}>
+                                        <Button onClick={flushAll} variant="outlined" disabled={session.readonlyMode || disableActions} color="warning">{UIText.flushAll}</Button>
+                                        <Button onClick={resetCounterAll} variant="outlined" disabled={session.readonlyMode || disableActions} color="info">{UIText.resetAll}</Button>
+                                        <Button onClick={stopAll} variant="outlined" disabled={session.readonlyMode || disableActions} color="error">{UIText.stopAll}</Button>
+                                    </Stack>
+                                </Stack>
+                            </RoleHOC>
                         </Grid>
                         <Grid item>
                             <Stack>
-                                <Box marginBottom={1} paddingInlineStart={1}>
+                                <Box marginBottom={2} paddingInlineStart={1}>
                                     {UIText.autoRefresh}
-                                    <Switch
+                                    <Android12Switch
                                         color="info"
                                         checked={autoUpdateList}
                                         onClick={() => setAutoUpdateList(current => !current)}
+                                    />
+                                    <SelectOption
+                                        disableFullWidth
+                                        disabled={!autoUpdateList}
+                                        size="small"
+                                        options={[
+                                            [1e3, "1s"],
+                                            [2e3, "2s"],
+                                            [5e3, "5s"],
+                                            [10e3, "10s"],
+                                            [30e3, "30s"],
+                                        ]}
+                                        value={autoRefreshInterval}
+                                        onChange={value => setAutoRefreshInterval(value)}
                                     />
                                 </Box>
                                 <Badge variant="standard" color="info" showZero={false} badgeContent={lastListRefreshResponseTime && `${lastListRefreshResponseTime}ms`}>
@@ -230,8 +270,6 @@ export default function Index() {
                 </Grid>
                 <Grid item xs={12}>
                     <DataGrid<Pm2ProcessDescription>
-                        disableColumnFilter
-                        disableColumnMenu
                         disableColumnResize
                         disableRowSelectionOnClick
                         hideFooter
@@ -243,12 +281,9 @@ export default function Index() {
                         columns={[
                             {
                                 field: 'name',
-                                sortable: false,
                                 flex: 20,
                                 minWidth: 250,
                                 renderCell: ctx => <><Chip size="small" label={`#${ctx.row.pmId}`} /> {ctx.value}</>,
-                                // headerName: "UIText",
-                                align: "left", headerAlign: "center",
                             },
                             {
                                 field: 'status',
@@ -271,19 +306,17 @@ export default function Index() {
 
                                     return <Chip color={statusToColor(ctx.value)} icon={icon} label={ctx.value} />;
                                 },
-                                // headerName: "UIText",
-                                align: "center", headerAlign: "center",
                             },
                             {
                                 field: 'restartCount',
                                 sortable: false,
-                                flex: 5,
-                                headerName: '🔄',
-                                minWidth: 50,
-                                align: "center", headerAlign: "center",
+                                flex: 8,
+                                headerName: UIText.restarts,
+                                renderCell: ctx => <Typography component="span" fontFamily="monospace">{ctx.value}</Typography>,
+                                minWidth: 90,
                             },
                             {
-                                field: 'cpu',
+                                field: 'cpu' as keyof Pm2ProcessDescription,
                                 flex: 5,
                                 renderCell: ctx => {
                                     if (!ctx.row.usage) return '-';
@@ -293,10 +326,9 @@ export default function Index() {
                                 sortable: false,
                                 headerName: UIText.cpuPercentage,
                                 minWidth: 100,
-                                align: "center", headerAlign: "center",
                             },
                             {
-                                field: 'memory',
+                                field: 'memory' as keyof Pm2ProcessDescription,
                                 flex: 10,
                                 renderCell: ctx => {
                                     if (!ctx.row.usage) return '-';
@@ -306,78 +338,119 @@ export default function Index() {
                                 sortable: false,
                                 headerName: UIText.memoryMegabyteUsage,
                                 minWidth: 150,
-                                align: "center", headerAlign: "center",
                             },
                             {
-                                field: '⌚',
-                                sortable: false,
-                                minWidth: 50,
-                                flex: 10,
-                                renderCell: ctx => ctx.row.status === 'online' ? msToHumanReadable(Date.now() - ctx.row.startTime) : '-',
-                                align: "center", headerAlign: "center",
+                                field: 'startTime',
+                                headerName: UIText.uptime,
+                                minWidth: 80,
+                                flex: 7,
+                                renderCell: ctx => <Typography component="span" fontFamily="monospace">{ctx.row.status === 'online' ? msToHumanReadable(Date.now() - ctx.row.startTime) : '-'}</Typography>,
                             },
                             {
                                 field: 'operation' as keyof Pm2ProcessDescription,
+                                headerName: UIText.operation,
                                 sortable: false,
                                 minWidth: 650,
                                 flex: 40,
                                 renderCell: ctx => (
                                     <Stack gap={1} direction="row" padding={1} justifyContent="center">
-                                        <Button
-                                            size="small"
-                                            disabled={session.readonlyMode || disableActions || lockedPmIds.current.has(ctx.row.pmId)}
-                                            color="success"
-                                            startIcon={<RestartAlt />}
-                                            onClick={() => restart(ctx.row)}
-                                        >{UIText.restart}</Button>
-                                        <Button
-                                            size="small"
-                                            disabled={session.readonlyMode || disableActions || lockedPmIds.current.has(ctx.row.pmId)}
-                                            color="error"
-                                            startIcon={<Stop />}
-                                            onClick={() => stop(ctx.row)}
-                                        >{UIText.stop}</Button>
-                                        <Button
-                                            size="small"
-                                            isLoading={downloadingLogPmIds.current.has(ctx.row.pmId)}
-                                            disabled={disableActions}
-                                            color="info"
-                                            variant="outlined"
-                                            startIcon={<Save />}
-                                            onClick={() => downloadLogFile(ctx.row, "out")}
-                                        >Out</Button>
-                                        <Button
-                                            size="small"
-                                            isLoading={downloadingLogPmIds.current.has(ctx.row.pmId)}
-                                            disabled={disableActions}
-                                            color="warning"
-                                            variant="outlined"
-                                            startIcon={<Save />}
-                                            onClick={() => downloadLogFile(ctx.row, "err")}
-                                        >Err</Button>
-                                        <Button
-                                            size="small"
-                                            disabled={session.readonlyMode || disableActions || lockedPmIds.current.has(ctx.row.pmId)}
-                                            color="warning"
-                                            startIcon={<ReceiptLong />}
-                                            onClick={() => flush(ctx.row)}
-                                        >{UIText.flush}</Button>
-                                        <Button
-                                            size="small"
-                                            disabled={session.readonlyMode || disableActions || lockedPmIds.current.has(ctx.row.pmId)}
-                                            color="info"
-                                            startIcon={<AutoDelete />}
-                                            onClick={() => resetCounter(ctx.row)}
-                                        >{UIText.reset}</Button>
-                                        <Button
-                                            size="small"
-                                            disabled={session.readonlyMode || ctx.row.status !== 'stopped' || (disableActions || lockedPmIds.current.has(ctx.row.pmId))}
-                                            color="error"
-                                            startIcon={<DeleteForever />}
-                                        >Delete</Button>
+
+                                        {permissionHelper({
+                                            session, processName: ctx.row.name,
+                                            operation: Permission.RestartProcess
+                                        }) ? (
+                                            <Button
+                                                size="small"
+                                                disabled={session.readonlyMode || disableActions || lockedPmIds.current.has(ctx.row.pmId)}
+                                                color="success"
+                                                startIcon={<RestartAlt />}
+                                                onClick={() => restart(ctx.row)}
+                                            >{UIText.restart}</Button>
+                                        ) : null}
+
+                                        {permissionHelper({
+                                            session, processName: ctx.row.name,
+                                            operation: Permission.StopProcess
+                                        }) ? (
+                                            <Button
+                                                size="small"
+                                                disabled={session.readonlyMode || disableActions || lockedPmIds.current.has(ctx.row.pmId)}
+                                                color="error"
+                                                startIcon={<Stop />}
+                                                onClick={() => stop(ctx.row)}
+                                            >{UIText.stop}</Button>
+                                        ) : null}
+
+                                        {permissionHelper({
+                                            session, processName: ctx.row.name,
+                                            operation: Permission.GetOutputLog
+                                        }) ? (
+                                            <Button
+                                                size="small"
+                                                isLoading={downloadingLogPmIds.current.has(ctx.row.pmId)}
+                                                disabled={disableActions}
+                                                color="info"
+                                                variant="outlined"
+                                                startIcon={<Save />}
+                                                onClick={() => downloadLogFile(ctx.row, "out")}
+                                            >Out</Button>
+                                        ) : null}
+
+                                        {permissionHelper({
+                                            session, processName: ctx.row.name,
+                                            operation: Permission.GetErrorLog
+                                        }) ? (
+                                            <Button
+                                                size="small"
+                                                isLoading={downloadingLogPmIds.current.has(ctx.row.pmId)}
+                                                disabled={disableActions}
+                                                color="warning"
+                                                variant="outlined"
+                                                startIcon={<Save />}
+                                                onClick={() => downloadLogFile(ctx.row, "err")}
+                                            >Err</Button>
+                                        ) : null}
+
+                                        {permissionHelper({
+                                            session, processName: ctx.row.name,
+                                            operation: Permission.FlushProcess
+                                        }) ? (
+                                            <Button
+                                                size="small"
+                                                disabled={session.readonlyMode || disableActions || lockedPmIds.current.has(ctx.row.pmId)}
+                                                color="warning"
+                                                startIcon={<ReceiptLong />}
+                                                onClick={() => flush(ctx.row)}
+                                            >{UIText.flush}</Button>
+                                        ) : null}
+
+                                        {permissionHelper({
+                                            session, processName: ctx.row.name,
+                                            operation: Permission.ResetProcess
+                                        }) ? (
+                                            <Button
+                                                size="small"
+                                                disabled={session.readonlyMode || disableActions || lockedPmIds.current.has(ctx.row.pmId)}
+                                                color="info"
+                                                startIcon={<AutoDelete />}
+                                                onClick={() => resetCounter(ctx.row)}
+                                            >{UIText.reset}</Button>
+                                        ) : null}
+
+                                        {/* {permissionHelper({
+                                            session, processName: ctx.row.name,
+                                            operation: Permission.DeleteProcess
+                                        }) ? (
+                                            <Button
+                                                size="small"
+                                                disabled={session.readonlyMode || ctx.row.status !== 'stopped' || (disableActions || lockedPmIds.current.has(ctx.row.pmId))}
+                                                color="error"
+                                                startIcon={<DeleteForever />}
+                                            >Delete</Button>
+                                        ) : null} */}
+
                                     </Stack>
                                 ),
-                                align: "center", headerAlign: "center",
                             }
                         ]}
                         rows={list?.map(item => ({ id: item.pmId, ...item })) ?? []}

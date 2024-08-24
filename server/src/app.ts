@@ -1,64 +1,141 @@
+import config from "./config";
 import Fastify from 'fastify';
 import fs from 'node:fs/promises';
-import PM2Service from '../../common/services/pm2';
-import { jwtRequestGuard } from './middlewares/jwt';
-import type { TargetProcess } from '../../common/types/ComInterface';
-
-const pm2Service = new PM2Service();
-
-pm2Service.connect();
+import LoginDTO from './dto/LoginDTO';
+import { signToken } from './utils/jwt';
+import { isUUID } from "class-validator";
+import services from './servicesInstance';
+import { jwtResolve } from './middlewares/jwt';
+import EditUserDTO from "./dto/user/EditUserDTO";
+import CreateUserDTO from "./dto/user/CreateUserDTO";
+import { dtoValidator } from './middlewares/dtoValidator';
+import type { UserViewModel } from '../../common/types/user';
+import PM2TargetProcessDTO from "./dto/pm2/PM2TargetProcessDTO";
+import { accountTypeGuard, authGuard } from "./middlewares/guards";
+import { AccountType, ClientServerInitHello } from "../../common/types/enums";
+import { OperationResultWithData } from '../../common/models/OperationResult';
 
 const fastify = Fastify({
     logger: true,
 });
 
-fastify.addHook("onRequest", jwtRequestGuard);
+fastify.addHook('onRequest', function (req, _, done) {
+    req.locals = {
+        user: null as unknown as UserViewModel,
+        dto: null
+    };
+    done();
+});
+
+fastify.post("/login", { preValidation: dtoValidator(LoginDTO) }, async (req, reply) => {
+    const payload = req.locals.dto as LoginDTO;
+    const result = new OperationResultWithData<string>();
+    const loginResult = await services.applications.userApplication.login(payload.username, payload.password);
+
+    if (loginResult.ok && loginResult.data) {
+        const token = signToken(loginResult.data);
+        result.setData(token).succeeded();
+    } else {
+        result.failed(loginResult.message);
+    }
+
+    return reply.send(result);
+});
+
+fastify.get("/user/me", { onRequest: [jwtResolve, authGuard] }, (req) => {
+    return req.locals.user;
+});
 
 fastify.register((instance, _, next) => {
-    instance.get("/", () => {
-        return {
-            ok: true
-        };
+    instance.addHook("onRequest", jwtResolve);
+    instance.addHook("onRequest", authGuard);
+    instance.addHook("onRequest", accountTypeGuard(AccountType.Admin));
+
+    instance.get("/list", async (_, reply) => {
+        return reply.send(await services.applications.userApplication.getAllViewModel());
     });
 
-    instance.get("/list", async () => {
-        return await pm2Service.list();
+    instance.put("/create", { preValidation: dtoValidator(CreateUserDTO) }, async (req, reply) => {
+        return reply.send(await services.applications.userApplication.create(req.locals.dto as CreateUserDTO));
     });
 
-    instance.post("/restart", async (req) => {
-        const body = req.body as TargetProcess;
-        return await pm2Service.restart(body.id);
+    instance.patch("/edit", { preValidation: dtoValidator(EditUserDTO) }, async (req, reply) => {
+        return reply.send(await services.applications.userApplication.edit(req.locals.dto as EditUserDTO));
     });
 
-    instance.post("/stop", async (req) => {
-        const body = req.body as TargetProcess;
-        return await pm2Service.stop(body.id);
+    instance.patch("/activate/:id", async (req, reply) => {
+        const id = Number.parseInt((req.params as any)?.id);
+        return reply.send(await services.applications.userApplication.activate(id));
     });
 
-    instance.patch("/flush", async (req) => {
-        const body = req.body as TargetProcess;
-        return await pm2Service.flush(body.id);
+    instance.patch("/deactivate/:id", async (req, reply) => {
+        const id = Number.parseInt((req.params as any)?.id);
+        return reply.send(await services.applications.userApplication.deactivate(id));
     });
 
-    instance.patch("/reset", async (req) => {
-        const body = req.body as TargetProcess;
-        return await pm2Service.reset(body.id);
+    next();
+}, { prefix: "user" });
+
+fastify.get("/hello", (req, reply) => {
+    const shouldRepeat = req.headers[ClientServerInitHello.ClientKey];
+    const isValid = typeof shouldRepeat === "string" && isUUID(shouldRepeat, "4");
+    return reply.header(ClientServerInitHello.ServerKey, isValid ? shouldRepeat : "InvalidValue").send({});
+});
+
+fastify.register((instance, _, next) => {
+    instance.addHook("onRequest", jwtResolve);
+    instance.addHook("onRequest", authGuard);
+
+    instance.get("/list", async (req, reply) => {
+        return reply.send(await services.applications.pm2Application.getList(req.locals.user));
     });
 
-    instance.get("/outFilePath", async (req, reply) => {
-        const body = req.query as TargetProcess;
-        const path = await pm2Service.getLogPath(body.id, "out");
-        if (path)
-            return await fs.readFile(path);
+    instance.post("/restart", { preValidation: dtoValidator(PM2TargetProcessDTO) }, async (req, reply) => {
+        return reply.send(await services.applications.pm2Application.restart({
+            user: req.locals.user,
+            pmId: (req.locals.dto as PM2TargetProcessDTO).pmId
+        }));
+    });
+
+    instance.post("/stop", { preValidation: dtoValidator(PM2TargetProcessDTO) }, async (req, reply) => {
+        return reply.send(await services.applications.pm2Application.stop({
+            user: req.locals.user,
+            pmId: (req.locals.dto as PM2TargetProcessDTO).pmId
+        }));
+    });
+
+    instance.patch("/flush", { preValidation: dtoValidator(PM2TargetProcessDTO) }, async (req, reply) => {
+        return reply.send(await services.applications.pm2Application.flush({
+            user: req.locals.user,
+            pmId: (req.locals.dto as PM2TargetProcessDTO).pmId
+        }));
+    });
+
+    instance.patch("/reset", { preValidation: dtoValidator(PM2TargetProcessDTO) }, async (req, reply) => {
+        return reply.send(await services.applications.pm2Application.reset({
+            user: req.locals.user,
+            pmId: (req.locals.dto as PM2TargetProcessDTO).pmId
+        }));
+    });
+
+    instance.get("/outFilePath", { preValidation: dtoValidator(PM2TargetProcessDTO) }, async (req, reply) => {
+        const result = await services.applications.pm2Application.readOutputLogFile({
+            user: req.locals.user,
+            pmId: (req.locals.dto as PM2TargetProcessDTO).pmId
+        });
+        if (result.data)
+            return reply.send(await fs.readFile(result.data));
         else
             return reply.status(404);
     });
 
-    instance.get("/errFilePath", async (req, reply) => {
-        const body = req.query as TargetProcess;
-        const path = await pm2Service.getLogPath(body.id, "err");
-        if (path)
-            return await fs.readFile(path);
+    instance.get("/errFilePath", { preValidation: dtoValidator(PM2TargetProcessDTO) }, async (req, reply) => {
+        const result = await services.applications.pm2Application.readErrorLogFile({
+            user: req.locals.user,
+            pmId: (req.locals.dto as PM2TargetProcessDTO).pmId
+        });
+        if (result.data)
+            return reply.send(await fs.readFile(result.data));
         else
             return reply.status(404);
     });
@@ -67,7 +144,7 @@ fastify.register((instance, _, next) => {
 }, { prefix: "pm2" });
 
 fastify.listen({
-    port: 3005
+    port: config.serverPort
 })
     .then(() => {
         console.log("PM2 service server running...");

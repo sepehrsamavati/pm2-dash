@@ -1,22 +1,22 @@
 import PM2Service from "../../../common/services/pm2";
 import { OperationResult } from "../../../common/models/OperationResult";
-import type { Pm2ConnectionType, TargetProcess } from "../../../common/types/ComInterface";
+import type { Pm2ConnectionType } from "../../../common/types/ComInterface";
+import { ClientServerInitHello } from "../../../common/types/enums";
 
 export default class ClientSession {
     connectionType: Pm2ConnectionType = "LOCAL_IPC";
     pm2Service = new PM2Service();
     pm2HttpServerBasePath = "";
     pm2HttpServerAccessToken = "";
+    repeatAfterMeText = crypto.randomUUID();
 
-    async initHttpConnection(basePath: string, accessToken: string) {
+    async initHttpConnection(basePath: string) {
         const result = new OperationResult();
 
 
         this.pm2HttpServerBasePath = basePath;
-        this.pm2HttpServerAccessToken = accessToken;
         this.connectionType = "HTTP_SERVER";
-        const res = await this.httpServerRequest("/pm2", "GET");
-
+        const res = await this.httpServerRequest("/hello", "GET");
 
         if (res.ok) {
             result.succeeded();
@@ -29,36 +29,46 @@ export default class ClientSession {
     }
 
     initHttpServerRequest(path: string, method: string, body?: unknown) {
+        const headers = new Headers();
+
         const options: RequestInit = {
-            method,
-            headers: {
-                "AccessToken": this.pm2HttpServerAccessToken
-            }
+            method, headers
         };
 
+        if (this.pm2HttpServerAccessToken)
+            headers.append("AccessToken", this.pm2HttpServerAccessToken);
+
+        if (path === "/hello")
+            headers.append(ClientServerInitHello.ClientKey, this.repeatAfterMeText);
+
         if (body) {
-            options.headers = {
-                ...options.headers,
-                'Content-Type': 'application/json'
-            };
+            headers.append("Content-Type", "application/json");
             options.body = JSON.stringify(body);
         }
 
         return fetch(this.pm2HttpServerBasePath + path, options);
     }
 
-    async httpServerRequest(path: string, method: string, body?: TargetProcess) {
+    async httpServerRequest(path: string, method: string, body?: unknown) {
         const result = new OperationResult();
 
         try {
             const response = await this.initHttpServerRequest(path, method, body);
 
-            if (response.status === 200) {
+            if (path === "/hello") {
+                const repeatedValue = response.headers.get(ClientServerInitHello.ServerKey);
+                if (response.status === 200 && repeatedValue === this.repeatAfterMeText) {
+                    return result.succeeded("serverApproved");
+                }
+                return result.failed("serverDidNotRespondHello");
+            } else if (response.status === 200) {
                 return await response.json() as OperationResult;
             } else if (response.status === 401) {
                 return result.failed("invalidToken");
+            } else if (response.status === 403) {
+                return result.failed("noAccess");
             } else {
-                return result.failed("Not 200 response");
+                return result.failed("nonOkResponse");
             }
         } catch (err) {
             console.error(err);

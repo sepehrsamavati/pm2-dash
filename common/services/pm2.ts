@@ -85,6 +85,18 @@ class PM2Service {
         });
     }
 
+    delete(pmid: number | string): Promise<OperationResult> {
+        const result = new OperationResult();
+        return new Promise(resolve => {
+            pm2.delete(pmid, (err, proc) => {
+                if (err)
+                    resolve(result.failed(err.message));
+                else
+                    resolve(result.succeeded(proc.name));
+            });
+        });
+    }
+
     flush(pmid: number | string): Promise<OperationResult> {
         const result = new OperationResult();
         return new Promise(resolve => {

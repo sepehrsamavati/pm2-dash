@@ -1,13 +1,14 @@
 import jwt from "jsonwebtoken";
 import config from "../config";
+import type { JwtPayload } from "../types/jwtPayload";
 
-export const signToken = (expiresIn: string) => jwt.sign({}, config.secret, { expiresIn });
+export const signToken = (username: string) => jwt.sign({ username } satisfies JwtPayload, config.secret, { expiresIn: config.jwtExpiresIn });
 
 export const verifyToken = (token: string) => {
     try {
-        jwt.verify(token, config.secret);
-        return true;
+        const res = jwt.verify(token, config.secret) as JwtPayload;
+        return typeof res === "object" ? res : null;
     } catch {
-        return false;
+        return null;
     }
 };

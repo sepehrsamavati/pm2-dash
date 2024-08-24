@@ -1,8 +1,13 @@
 import type { IPm2Connection } from "../types/pm2Connection";
+import type { Pm2ProcessDescription } from "@/common/types/pm2";
 import type { Pm2ConnectionType } from "@/common/types/ComInterface";
 import type { OperationResultType } from "@/common/types/OperationResult";
 
-export class Pm2LocalIpcConnection implements IPm2Connection {
+abstract class Pm2ConnectionBase implements Partial<IPm2Connection> {
+    public cachedList: Pm2ProcessDescription[] = [];
+}
+
+export class Pm2LocalIpcConnection extends Pm2ConnectionBase implements IPm2Connection {
     private _isConnected = false;
     get isConnected() {
         return this._isConnected;
@@ -13,7 +18,7 @@ export class Pm2LocalIpcConnection implements IPm2Connection {
     }
 
     async connect() {
-        const result = await window.electronAPI.pm2.initIpc();
+        const result = await window.electronAPI.initIpc();
 
         if (result.ok)
             this._isConnected = true;
@@ -31,7 +36,7 @@ export class Pm2LocalIpcConnection implements IPm2Connection {
     }
 }
 
-export class Pm2HttpServerConnection implements IPm2Connection {
+export class Pm2HttpServerConnection extends Pm2ConnectionBase implements IPm2Connection {
     private _isConnected = false;
     get isConnected() {
         return this._isConnected;
@@ -47,9 +52,8 @@ export class Pm2HttpServerConnection implements IPm2Connection {
     accessToken = "";
 
     async connect(): Promise<OperationResultType> {
-        const result = await window.electronAPI.pm2.initHttp({
-            basePath: `${this.protocol}://${this.hostname}:${this.port}`,
-            accessToken: this.accessToken
+        const result = await window.electronAPI.initHttp({
+            basePath: `${this.protocol}://${this.hostname}:${this.port}`
         });
 
         if (result.ok)

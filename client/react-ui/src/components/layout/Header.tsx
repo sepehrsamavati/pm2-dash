@@ -1,10 +1,15 @@
 import Button from "../Button";
+import RoleHOC from "../RoleHOC";
+import { drawerWidth } from "./SideMenu";
 import UIText from "../../core/i18n/UIText";
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSession } from "../../core/Session";
+import { AccountType } from "../../types/enums";
+import { Menu as MenuIcon } from "@mui/icons-material";
+import Android12Switch from "../inputs/Android12Switch";
 import { CancelPresentation, Http, Terminal } from "@mui/icons-material";
-import { AppBar as MuiAppBar, Toolbar, AppBarProps as MuiAppBarProps, styled, Stack, Chip, Tooltip, Box, Switch } from "@mui/material";
+import { AppBar as MuiAppBar, Toolbar, AppBarProps as MuiAppBarProps, styled, Stack, Chip, Tooltip, Box, IconButton } from "@mui/material";
 
 interface AppBarProps extends MuiAppBarProps {
     open?: boolean;
@@ -19,7 +24,8 @@ const AppBar = styled(MuiAppBar, {
         duration: theme.transitions.duration.leavingScreen,
     }),
     ...(open && {
-        width: "100%",
+        marginInlineStart: drawerWidth,
+        width: `calc(100% - ${drawerWidth}px)`,
         transition: theme.transitions.create(['width', 'margin'], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.enteringScreen,
@@ -27,9 +33,13 @@ const AppBar = styled(MuiAppBar, {
     }),
 }));
 
-export default function Header() {
+export default function Header(props?: {
+    menuIsOpen?: boolean;
+    openMenuRequest?: Function;
+}) {
     const session = useSession();
     const navigate = useNavigate();
+    const open = props?.menuIsOpen ?? false;
     const [isDisconnecting, setIsDisconnecting] = useState(false);
 
     const disconnect = useCallback(() => {
@@ -50,8 +60,24 @@ export default function Header() {
     }, [session, navigate]);
 
     return (
-        <AppBar position="fixed">
+        <AppBar position="fixed" open={open}>
             <Toolbar>
+                {session.pm2Connection?.name === "HTTP_SERVER" ? (
+                    <RoleHOC roles={AccountType.Admin}>
+                        <IconButton
+                            color="inherit"
+                            aria-label="open drawer"
+                            onClick={() => props?.openMenuRequest && props.openMenuRequest()}
+                            edge="start"
+                            sx={{
+                                marginInlineEnd: 5,
+                                ...(open && { display: 'none' }),
+                            }}
+                        >
+                            <MenuIcon />
+                        </IconButton>
+                    </RoleHOC>
+                ) : null}
                 <Stack direction="row" alignItems="center" spacing={2}>
                     {session.pm2Connection ? (
                         <Stack fontSize={"0.9em"} paddingBlock={1} direction="column" spacing={1} alignItems="start" justifyContent="space-evenly">
@@ -74,7 +100,7 @@ export default function Header() {
                 <Box sx={{ flexGrow: 1 }} />
                 <Box>
                     {UIText.readonlyMode}
-                    <Switch
+                    <Android12Switch
                         color="success"
                         checked={session.readonlyMode}
                         onClick={() => {

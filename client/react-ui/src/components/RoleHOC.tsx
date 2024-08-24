@@ -1,0 +1,17 @@
+import { useSession } from "../core/Session";
+import { AccountType } from "@/common/types/enums";
+import hasAccess from "../core/helpers/roleHelper";
+
+export default function RoleHOC(props?: {
+    roles?: AccountType | AccountType[];
+    children?: React.ReactNode;
+    disableAuto?: boolean;
+}) {
+    const session = useSession();
+
+    return hasAccess({
+        session: session,
+        page: props?.roles,
+        disableAuto: props?.disableAuto
+    }) ? <>{props?.children}</> : null;
+}

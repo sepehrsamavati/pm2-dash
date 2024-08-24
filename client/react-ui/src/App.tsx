@@ -1,7 +1,10 @@
 import List from './pages/List';
+import Login from './pages/Login';
 import Connect from './pages/Connect';
-import { ThemeProvider } from '@mui/material';
+import { AccountType } from './types/enums';
+import UserList from './pages/user/UserList';
 import { SnackbarProvider } from 'notistack';
+import { ThemeProvider } from '@mui/material';
 import MainLayout from './components/layout/MainLayout';
 import Session, { SessionContext } from './core/Session';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
@@ -33,6 +36,12 @@ function App() {
             <Routes>
               <Route path="/" element={<MainLayout />}>
                 <Route path="/" element={<Connect />} />
+                <Route path="/Login" element={<Login />} />
+                {session.user?.type === AccountType.Admin ? (
+                  <Route path="/Users">
+                    <Route path="List" element={<UserList />} />
+                  </Route>
+                ) : null}
                 {session.pm2Connection ? <Route path="/List" element={<List />} /> : null}
                 <Route path="*" element={<Connect />} />
               </Route>
