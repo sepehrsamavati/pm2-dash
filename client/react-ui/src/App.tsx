@@ -7,7 +7,7 @@ import { SnackbarProvider } from 'notistack';
 import { ThemeProvider } from '@mui/material';
 import MainLayout from './components/layout/MainLayout';
 import Session, { SessionContext } from './core/Session';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { HashRouter, Route, Routes } from 'react-router-dom';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { muiThemeOptions, type ThemeName } from './core/config/muiConfig';
 import { SnackbarProviderConfigurator } from './core/helpers/snackbarProvider';
@@ -32,7 +32,7 @@ function App() {
       </SnackbarProvider>
       <ThemeProvider theme={muiThemeOptions(theme)}>
         <SessionContext.Provider value={session}>
-          <BrowserRouter>
+          <HashRouter>
             <Routes>
               <Route path="/" element={<MainLayout />}>
                 <Route path="/" element={<Connect />} />
@@ -46,7 +46,7 @@ function App() {
                 <Route path="*" element={<Connect />} />
               </Route>
             </Routes>
-          </BrowserRouter>
+          </HashRouter>
         </SessionContext.Provider>
       </ThemeProvider>
     </>
