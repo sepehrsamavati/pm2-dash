@@ -14,7 +14,7 @@ import { formHookBaseConfig } from "../core/config/formHook";
 import FormValidationHelper from "../core/helpers/FormValidationHelper";
 
 const validations = {
-    username: new FormValidationHelper<ILoginDTO, "username">().isRequired().maxLength(20).resolve(),
+    username: new FormValidationHelper<ILoginDTO, "username">().isRequired().minLength(3).maxLength(12).resolve(),
     password: new FormValidationHelper<ILoginDTO, "password">().isRequired().maxLength(32).resolve(),
 } as const;
 
@@ -79,6 +79,7 @@ export default function Login() {
                                 autoComplete="off"
                                 form={formRef}
                                 label={UIText.username}
+                                inputProps={{ style: { textTransform: "lowercase" } }}
                                 errorMessage={form.formState.errors.username?.message}
                                 formRegister={form.register("username", validations.username)}
                             ></TextField>

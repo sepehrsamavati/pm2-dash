@@ -8,8 +8,8 @@ export default class LoginDTO implements ILoginDTO {
     @IsString()
     @IsDefined()
     @IsLowercase()
-    @MinLength(1)
-    @MaxLength(100)
+    @MinLength(3)
+    @MaxLength(12)
     username!: string;
 
     @Expose()
