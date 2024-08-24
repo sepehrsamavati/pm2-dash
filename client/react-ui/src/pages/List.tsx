@@ -1,17 +1,17 @@
-import UIText, { resultUIText } from "../core/i18n/UIText";
 import Button from "../components/Button";
+import { Permission } from "../types/enums";
+import RoleHOC from "../components/RoleHOC";
 import { DataGrid } from "@mui/x-data-grid";
 import { useSession } from "../core/Session";
+import { AccountType } from "../types/enums";
+import UIText, { resultUIText } from "../core/i18n/UIText";
 import type { Pm2ProcessDescription } from "@/common/types/pm2";
+import permissionHelper from "../core/helpers/permissionHelper";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ContentContainer from "../components/layout/ContentContainer";
 import { Badge, Box, Chip, Divider, Grid, Stack, Switch } from "@mui/material";
 import { msToHumanReadable, bytesToSize } from "../core/helpers/toHumanReadable";
-import { AutoDelete, CheckCircle, DeleteForever, HighlightOff, ReceiptLong, Refresh, RestartAlt, Save, SmsFailed, Stop } from "@mui/icons-material";
-import permissionHelper from "../core/helpers/permissionHelper";
-import { Permission } from "../types/enums";
-import RoleHOC from "../components/RoleHOC";
-import { AccountType } from "../types/enums";
+import { AutoDelete, CheckCircle, HighlightOff, ReceiptLong, Refresh, RestartAlt, Save, SmsFailed, Stop } from "@mui/icons-material";
 
 const statusToColor = (status: string) => {
     let color: 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' = "error";
@@ -427,7 +427,7 @@ export default function Index() {
                                             >{UIText.reset}</Button>
                                         ) : null}
 
-                                        {permissionHelper({
+                                        {/* {permissionHelper({
                                             session, processName: ctx.row.name,
                                             operation: Permission.DeleteProcess
                                         }) ? (
@@ -437,7 +437,7 @@ export default function Index() {
                                                 color="error"
                                                 startIcon={<DeleteForever />}
                                             >Delete</Button>
-                                        ) : null}
+                                        ) : null} */}
 
                                     </Stack>
                                 ),
