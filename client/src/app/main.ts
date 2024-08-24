@@ -26,8 +26,10 @@ const createWindow = () => {
         app.quit();
     });
 
-    // mainWindow.loadURL("http://localhost:3000");
-    mainWindow.loadFile(path.join(app.getAppPath(), "./build/react-ui/index.html"));
+    if (app.isPackaged)
+        mainWindow.loadFile(path.join(app.getAppPath(), "./build/react-ui/index.html"));
+    else
+        mainWindow.loadURL("http://localhost:3000");
 };
 
 app.whenReady().then(() => {
