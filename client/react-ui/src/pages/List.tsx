@@ -13,6 +13,7 @@ import ContentContainer from "../components/layout/ContentContainer";
 import { msToHumanReadable, bytesToSize } from "../core/helpers/toHumanReadable";
 import { Badge, Box, Chip, Divider, Grid, Stack, Typography } from "@mui/material";
 import { AutoDelete, CheckCircle, HighlightOff, ReceiptLong, Refresh, RestartAlt, Save, SmsFailed, Stop } from "@mui/icons-material";
+import SelectOption from "../components/inputs/SelectOption";
 
 const statusToColor = (status: string) => {
     let color: 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' = "error";
@@ -50,6 +51,7 @@ export default function Index() {
     const [lastListRefreshResponseTime, setLastListRefreshResponseTime] = useState(0);
     const [autoUpdateList, setAutoUpdateList] = useState(true);
     const isLoadingList = useRef(false);
+    const [autoRefreshInterval, setAutoRefreshInterval] = useState(5000);
     const [disableActions, setDisableActions] = useState(false);
     const [list, setList] = useState<Pm2ProcessDescription[]>();
     const lockedPmIds = useRef<Set<Pm2ProcessDescription['pmId']>>(new Set());
@@ -213,11 +215,11 @@ export default function Index() {
 
     useEffect(() => {
         autoUpdateList && getList();
-        const timer = setInterval(() => autoUpdateList && getList(), 5e3);
+        const timer = setInterval(() => autoUpdateList && getList(), autoRefreshInterval);
         return () => {
             clearInterval(timer);
         };
-    }, [getList, autoUpdateList]);
+    }, [getList, autoUpdateList, autoRefreshInterval]);
 
     return (
         <ContentContainer>
@@ -237,12 +239,26 @@ export default function Index() {
                         </Grid>
                         <Grid item>
                             <Stack>
-                                <Box marginBottom={1} paddingInlineStart={1}>
+                                <Box marginBottom={2} paddingInlineStart={1}>
                                     {UIText.autoRefresh}
                                     <Android12Switch
                                         color="info"
                                         checked={autoUpdateList}
                                         onClick={() => setAutoUpdateList(current => !current)}
+                                    />
+                                    <SelectOption
+                                        disableFullWidth
+                                        disabled={!autoUpdateList}
+                                        size="small"
+                                        options={[
+                                            [1e3, "1s"],
+                                            [2e3, "2s"],
+                                            [5e3, "5s"],
+                                            [10e3, "10s"],
+                                            [30e3, "30s"],
+                                        ]}
+                                        value={autoRefreshInterval}
+                                        onChange={value => setAutoRefreshInterval(value)}
                                     />
                                 </Box>
                                 <Badge variant="standard" color="info" showZero={false} badgeContent={lastListRefreshResponseTime && `${lastListRefreshResponseTime}ms`}>

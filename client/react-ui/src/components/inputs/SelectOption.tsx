@@ -26,6 +26,8 @@ export default function SelectOption<TValue extends (string | number)>(props: Se
     value?: TValue;
     onChange?: (value: TValue) => void;
     options: [TValue, string][];
+    size?: "small";
+    disableFullWidth?: boolean;
 }) {
     const id = useId();
     const [value, setValue] = useState(props.value ?? props.defaultValue ?? (props.optional && EMPTY_STRING));
@@ -51,9 +53,10 @@ export default function SelectOption<TValue extends (string | number)>(props: Se
     }, [props]);
 
     return (
-        <FormControl fullWidth>
+        <FormControl fullWidth={!props.disableFullWidth}>
             <InputLabel id={id}>{props.label}</InputLabel>
             <Select
+                size={props.size}
                 labelId={id}
                 error={hasError}
                 label={props.label}
