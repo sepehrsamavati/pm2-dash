@@ -73,7 +73,24 @@ const UIText = Object.freeze({
     status: "Status",
     close: "Close",
     none: "None",
-    stopAll: "Stop all"
+    stopAll: "Stop all",
+    restarts: "Restarts",
+    uptime: "Uptime",
+
+    operation: "Operation",
+    adminEditForbidden: "Admin account is not editable!",
+    couldNotGetFilePath: "Couldn't get file path",
+    couldNotReaFileData: "Couldn't read file content",
+    couldNtHashPassword: "Couldn't hash password",
+    downloadFailed: "Download failed!",
+    getListFailed: "Get list failed",
+    invalidCredential: "Invalid credential",
+    noAccess: "No access to this operation!",
+    nonOkResponse: "Invalid response returned (non 200)",
+    serverDidNotRespondHello: "Server didn't respond hello",
+    usernameTaken: "Username is taken",
+    userNotFound: "User not found",
+    name: "Name",
 } satisfies (UITextType | object));
 
 export const resultUIText = (result: OperationResultType) => UIText[result.message as UITextKey] ?? result.message;

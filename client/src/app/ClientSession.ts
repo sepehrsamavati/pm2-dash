@@ -68,7 +68,7 @@ export default class ClientSession {
             } else if (response.status === 403) {
                 return result.failed("noAccess");
             } else {
-                return result.failed("Not 200 response");
+                return result.failed("nonOkResponse");
             }
         } catch (err) {
             console.error(err);

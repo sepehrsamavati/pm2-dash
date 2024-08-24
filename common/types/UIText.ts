@@ -60,6 +60,8 @@ const keys = [
     "activate",
     "deactivate",
     "rowsSelected",
+    "restarts",
+    "uptime",
 
     "submit",
     "save",
@@ -72,7 +74,21 @@ const keys = [
     "failed",
     "close",
     "none",
-    "stopAll"
+    "name",
+    "stopAll",
+    "operation",
+    "serverDidNotRespondHello",
+    "noAccess",
+    "nonOkResponse",
+    "downloadFailed",
+    "getListFailed",
+    "couldNotGetFilePath",
+    "couldNotReaFileData",
+    "usernameTaken",
+    "couldNtHashPassword",
+    "userNotFound",
+    "adminEditForbidden",
+    "invalidCredential",
 ] as const;
 
 export type UITextKey = typeof keys[number];

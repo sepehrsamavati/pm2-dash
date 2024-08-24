@@ -23,7 +23,7 @@ export default class UserApplication {
 
         const hashedPassword = passwordUtils.encode(user.password);
         if (!hashedPassword)
-            return result.failed("Couldn't hash password!");
+            return result.failed("couldNtHashPassword");
 
         if (await this.userRepository.create({ ...user, isActive: true, password: hashedPassword }))
             result.succeeded();

@@ -1,7 +1,6 @@
 import Button from "../components/Button";
 import { Permission } from "../types/enums";
 import RoleHOC from "../components/RoleHOC";
-import { DataGrid } from "@mui/x-data-grid";
 import { useSession } from "../core/Session";
 import { AccountType } from "../types/enums";
 import UIText, { resultUIText } from "../core/i18n/UIText";
@@ -9,9 +8,10 @@ import type { Pm2ProcessDescription } from "@/common/types/pm2";
 import permissionHelper from "../core/helpers/permissionHelper";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ContentContainer from "../components/layout/ContentContainer";
-import { Badge, Box, Chip, Divider, Grid, Stack, Switch } from "@mui/material";
+import { Badge, Box, Chip, Divider, Grid, Stack, Switch, Typography } from "@mui/material";
 import { msToHumanReadable, bytesToSize } from "../core/helpers/toHumanReadable";
 import { AutoDelete, CheckCircle, HighlightOff, ReceiptLong, Refresh, RestartAlt, Save, SmsFailed, Stop } from "@mui/icons-material";
+import DataGrid from "../components/DataGrid";
 
 const statusToColor = (status: string) => {
     let color: 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' = "error";
@@ -251,8 +251,6 @@ export default function Index() {
                 </Grid>
                 <Grid item xs={12}>
                     <DataGrid<Pm2ProcessDescription>
-                        disableColumnFilter
-                        disableColumnMenu
                         disableColumnResize
                         disableRowSelectionOnClick
                         hideFooter
@@ -264,12 +262,9 @@ export default function Index() {
                         columns={[
                             {
                                 field: 'name',
-                                sortable: false,
                                 flex: 20,
                                 minWidth: 250,
                                 renderCell: ctx => <><Chip size="small" label={`#${ctx.row.pmId}`} /> {ctx.value}</>,
-                                // headerName: "UIText",
-                                align: "left", headerAlign: "center",
                             },
                             {
                                 field: 'status',
@@ -292,19 +287,17 @@ export default function Index() {
 
                                     return <Chip color={statusToColor(ctx.value)} icon={icon} label={ctx.value} />;
                                 },
-                                // headerName: "UIText",
-                                align: "center", headerAlign: "center",
                             },
                             {
                                 field: 'restartCount',
                                 sortable: false,
-                                flex: 5,
-                                headerName: '🔄',
-                                minWidth: 50,
-                                align: "center", headerAlign: "center",
+                                flex: 8,
+                                headerName: UIText.restarts,
+                                renderCell: ctx => <Typography component="span" fontFamily="monospace">{ctx.value}</Typography>,
+                                minWidth: 90,
                             },
                             {
-                                field: 'cpu',
+                                field: 'cpu' as keyof Pm2ProcessDescription,
                                 flex: 5,
                                 renderCell: ctx => {
                                     if (!ctx.row.usage) return '-';
@@ -314,10 +307,9 @@ export default function Index() {
                                 sortable: false,
                                 headerName: UIText.cpuPercentage,
                                 minWidth: 100,
-                                align: "center", headerAlign: "center",
                             },
                             {
-                                field: 'memory',
+                                field: 'memory' as keyof Pm2ProcessDescription,
                                 flex: 10,
                                 renderCell: ctx => {
                                     if (!ctx.row.usage) return '-';
@@ -327,18 +319,17 @@ export default function Index() {
                                 sortable: false,
                                 headerName: UIText.memoryMegabyteUsage,
                                 minWidth: 150,
-                                align: "center", headerAlign: "center",
                             },
                             {
-                                field: '⌚',
-                                sortable: false,
-                                minWidth: 50,
-                                flex: 10,
-                                renderCell: ctx => ctx.row.status === 'online' ? msToHumanReadable(Date.now() - ctx.row.startTime) : '-',
-                                align: "center", headerAlign: "center",
+                                field: 'startTime',
+                                headerName: UIText.uptime,
+                                minWidth: 80,
+                                flex: 7,
+                                renderCell: ctx => <Typography component="span" fontFamily="monospace">{ctx.row.status === 'online' ? msToHumanReadable(Date.now() - ctx.row.startTime) : '-'}</Typography>,
                             },
                             {
                                 field: 'operation' as keyof Pm2ProcessDescription,
+                                headerName: UIText.operation,
                                 sortable: false,
                                 minWidth: 650,
                                 flex: 40,
@@ -441,7 +432,6 @@ export default function Index() {
 
                                     </Stack>
                                 ),
-                                align: "center", headerAlign: "center",
                             }
                         ]}
                         rows={list?.map(item => ({ id: item.pmId, ...item })) ?? []}

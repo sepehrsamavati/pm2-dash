@@ -99,14 +99,14 @@ export default class PM2Application {
 
         const path = await this.pm2Service.getLogPath(opt.pmId, "out");
         if (!path)
-            return result.failed("Couldn't get file path");
+            return result.failed("couldNotGetFilePath");
 
         try {
             const data = await fs.readFile(path);
             result.setData(data).succeeded();
         } catch (err) {
             console.error(err);
-            result.failed("Couldn't read file data")
+            result.failed("couldNotReaFileData");
         }
 
         return result;
@@ -120,14 +120,14 @@ export default class PM2Application {
 
         const path = await this.pm2Service.getLogPath(opt.pmId, "err");
         if (!path)
-            return result.failed("Couldn't get file path");
+            return result.failed("couldNotGetFilePath");
 
         try {
             const data = await fs.readFile(path);
             result.setData(data).succeeded();
         } catch (err) {
             console.error(err);
-            result.failed("Couldn't read file data")
+            result.failed("couldNotReaFileData");
         }
 
         return result;
