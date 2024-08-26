@@ -164,12 +164,14 @@ export default function Index() {
         window.electronAPI
             .pm2.stop('all')
             .then(res => {
-                if (!res.ok) {
+                if (res.ok)
+                    getList();
+                else {
                     session.snackbarProvider(resultUIText(res), { variant: "error" });
                 }
             })
             .finally(() => setDisableActions(false));
-    }, [session]);
+    }, [session, getList]);
 
     const flushAll = useCallback(() => {
         setDisableActions(true);
