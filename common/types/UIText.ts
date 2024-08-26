@@ -89,6 +89,7 @@ const keys = [
     "userNotFound",
     "adminEditForbidden",
     "invalidCredential",
+    "serverVersionDoesNotMatch"
 ] as const;
 
 export type UITextKey = typeof keys[number];

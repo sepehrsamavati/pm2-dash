@@ -2,6 +2,7 @@ import PM2Service from "../../../common/services/pm2";
 import { OperationResult } from "../../../common/models/OperationResult";
 import type { Pm2ConnectionType } from "../../../common/types/ComInterface";
 import { ClientServerInitHello } from "../../../common/types/enums";
+import config from "../config/config";
 
 export default class ClientSession {
     connectionType: Pm2ConnectionType = "LOCAL_IPC";
@@ -58,7 +59,16 @@ export default class ClientSession {
             if (path === "/hello") {
                 const repeatedValue = response.headers.get(ClientServerInitHello.ServerKey);
                 if (response.status === 200 && repeatedValue === this.repeatAfterMeText) {
-                    return result.succeeded("serverApproved");
+                    const res = await response.json();
+
+                    if (typeof res.version === 'number') {
+                        if (res.version === config.majorVersion)
+                            return result.succeeded("serverApproved");
+                        else
+                            return result.failed("serverVersionDoesNotMatch");
+                    }
+
+                    return result.failed("serverDidNotRespondHello");
                 }
                 return result.failed("serverDidNotRespondHello");
             } else if (response.status === 200) {

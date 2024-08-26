@@ -1,8 +1,12 @@
 import { app } from "electron";
+import ConfigError from "../../../common/models/ConfigError";
 
 const config = {
-    isDevelopment: !app.isPackaged
+    majorVersion: Number.parseInt(app.getVersion().split(".")[0])
 };
+
+if (Number.isNaN(config.majorVersion))
+    new ConfigError("Couldn't read package version");
 
 Object.freeze(config);
 

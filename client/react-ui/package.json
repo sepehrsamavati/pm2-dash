@@ -26,7 +26,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "set \"PUBLIC_URL=./\" && react-scripts build && npm run copy",
+    "build": "react-scripts build && npm run copy",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "copy": "xcopy \"./build\" \"../build/react-ui\" /E /I /Y"

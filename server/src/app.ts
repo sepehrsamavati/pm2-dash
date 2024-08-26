@@ -79,7 +79,11 @@ fastify.register((instance, _, next) => {
 fastify.get("/hello", (req, reply) => {
     const shouldRepeat = req.headers[ClientServerInitHello.ClientKey];
     const isValid = typeof shouldRepeat === "string" && isUUID(shouldRepeat, "4");
-    return reply.header(ClientServerInitHello.ServerKey, isValid ? shouldRepeat : "InvalidValue").send({});
+    return reply
+        .header(ClientServerInitHello.ServerKey, isValid ? shouldRepeat : "InvalidValue")
+        .send({
+            version: config.majorVersion
+        });
 });
 
 fastify.register((instance, _, next) => {

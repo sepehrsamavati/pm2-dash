@@ -24,3 +24,9 @@ export enum ClientServerInitHello {
     ClientKey = "repeat-after-me",
     ServerKey = "here-you-go"
 }
+
+export enum ExitCode {
+    OK = 0,
+    FatalError = 1,
+    ConfigError = 100,
+}

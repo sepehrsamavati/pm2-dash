@@ -91,6 +91,7 @@ const UIText = Object.freeze({
     usernameTaken: "Username is taken",
     userNotFound: "User not found",
     name: "Name",
+    serverVersionDoesNotMatch: "Server and client version do not match!"
 } satisfies (UITextType | object));
 
 export const resultUIText = (result: OperationResultType) => UIText[result.message as UITextKey] ?? result.message;
