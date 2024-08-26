@@ -10,6 +10,7 @@ export type TargetProcess = {
 };
 
 export type ElectronAPI = {
+    getAppVersion: () => Promise<string>;
     clientReady: () => void;
     closeApp: () => void;
     initIpc: () => Promise<OperationResultType>;

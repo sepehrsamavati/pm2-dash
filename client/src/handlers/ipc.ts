@@ -1,11 +1,12 @@
 import fs from "node:fs";
+import config from "../config/config";
 import { Readable } from "node:stream";
 import { ipcMain, dialog } from "electron";
 import { finished } from "node:stream/promises";
 import ClientSession from "../app/ClientSession";
-import type { ILoginDTO, IPM2TargetProcess } from "../../../common/types/dto";
 import { Pm2ProcessDescription } from "../../../common/types/pm2";
 import type { ElectronAPI } from "../../../common/types/ComInterface";
+import type { ILoginDTO, IPM2TargetProcess } from "../../../common/types/dto";
 import { OperationResultWithDataType } from "../../../common/types/OperationResult";
 import { OperationResult, OperationResultWithData } from "../../../common/models/OperationResult";
 
@@ -18,6 +19,10 @@ export const initializeIpcHandlers = () => {
         return;
     }
     initialized = true;
+
+    ipcMain.handle('getAppVersion', async (): ReturnType<ElectronAPI['getAppVersion']> => {
+        return config.version;
+    });
 
     ipcMain.handle('initIpc', async (): ReturnType<ElectronAPI['initIpc']> => {
         clientSession.connectionType = "LOCAL_IPC";

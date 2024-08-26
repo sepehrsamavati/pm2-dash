@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from "electron";
 import type { ElectronAPI } from "../../common/types/ComInterface";
 
 contextBridge.exposeInMainWorld('electronAPI', {
+    getAppVersion: () => ipcRenderer.invoke('getAppVersion'),
     clientReady: () => ipcRenderer.send('showMainFrame'),
     closeApp: () => ipcRenderer.send('closeApp'),
     initIpc: () => ipcRenderer.invoke('initIpc'),

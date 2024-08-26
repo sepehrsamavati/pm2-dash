@@ -1,3 +1,4 @@
+import constants from "./config/constants";
 import { createContext, useContext } from "react";
 import { UserViewModel } from "@/common/types/user";
 import LocalStorageHelper from "./helpers/LocalStorage";
@@ -9,7 +10,17 @@ export default class Session {
 
     constructor(
         readonly refreshUI: () => void
-    ) { }
+    ) {
+        window.electronAPI
+            .getAppVersion()
+            .then(res => {
+                if (res)
+                {
+                    this.clientVersion = res;
+                    this.refreshUI();
+                }
+            });
+    }
 
     private _pm2Connection?: IPm2Connection;
     public get pm2Connection() {
@@ -32,6 +43,7 @@ export default class Session {
     }
 
     public readonlyMode = true;
+    clientVersion = constants.appVersion;
 
     public readonly snackbarProvider = snackbarProvider;
     public readonly closeSnackbar = closeSnackbar;

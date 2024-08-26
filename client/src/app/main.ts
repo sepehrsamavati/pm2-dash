@@ -16,7 +16,7 @@ const createWindow = () => {
             preload: path.join(__dirname, '..', 'clientPreload.js'),
             devTools: !app.isPackaged,
         },
-        show: false
+        // show: false
     });
 
     if (app.isPackaged)
