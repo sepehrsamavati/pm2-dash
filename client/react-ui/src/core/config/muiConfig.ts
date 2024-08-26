@@ -23,8 +23,8 @@ export const muiThemeOptions = (theme: ThemeName = 'dark') => createTheme({
         }
     },
     typography: {
-        fontSize: 16,
-        fontFamily: `"IRANSansFaNum", "yekan", "Roboto", "Helvetica", "Arial", sans-serif`
+        fontSize: 14,
+        fontFamily: `"Roboto", "Helvetica", "Arial", sans-serif`
     },
     components: {
         MuiLink: {

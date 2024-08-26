@@ -346,7 +346,7 @@ export default function Index() {
                             },
                             {
                                 field: 'startTime',
-                                headerName: UIText.uptime,
+                                headerName: UIText.startTime,
                                 sortable: true,
                                 minWidth: 80,
                                 flex: 7,

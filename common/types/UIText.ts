@@ -61,7 +61,7 @@ const keys = [
     "deactivate",
     "rowsSelected",
     "restarts",
-    "uptime",
+    "startTime",
 
     "submit",
     "save",

@@ -75,7 +75,7 @@ const UIText = Object.freeze({
     none: "None",
     stopAll: "Stop all",
     restarts: "Restarts",
-    uptime: "Uptime",
+    startTime: "Start time",
 
     operation: "Operation",
     adminEditForbidden: "Admin account is not editable!",
