@@ -2,7 +2,7 @@ import type { OperationResultType } from "@/common/types/OperationResult";
 import type { UITextKey, UITextKeyOptional, UITextType } from "@/common/types/UIText";
 
 const UIText = Object.freeze({
-    _appTitle: "PM2 GUI",
+    _appTitle: "PM2 Dash",
     connectToPm2: "Connect to PM2",
     noContentToShow: "No content to show",
     noProcessInList: "No process in list",

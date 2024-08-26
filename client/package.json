@@ -1,5 +1,5 @@
 {
-  "name": "pm2-gui",
+  "name": "pm2-dash-client",
   "version": "0.1.0",
   "description": "Graphical user interface for PM2 process manager",
   "main": "./build/client/src/app/main.js",
@@ -10,7 +10,7 @@
   },
   "keywords": [],
   "author": "Sepehr Samavati",
-  "repository": "https://github.com/sepehrsamavati/pm2-gui.git",
+  "repository": "https://github.com/sepehrsamavati/pm2-dash.git",
   "license": "ISC",
   "devDependencies": {
     "electron": "^31.3.1",
