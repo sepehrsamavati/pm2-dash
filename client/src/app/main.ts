@@ -10,18 +10,18 @@ const createWindow = () => {
         minWidth: 500,
         minHeight: 600,
         darkTheme: true,
+        icon: path.join(app.getAppPath(), "./build/react-ui/icon.ico"),
         title: app.getName(),
         autoHideMenuBar: app.isPackaged,
         webPreferences: {
             preload: path.join(__dirname, '..', 'clientPreload.js'),
             devTools: !app.isPackaged,
         },
-        // show: false
+        show: false
     });
 
     if (app.isPackaged)
         mainWindow.removeMenu();
-
 
     ipcMain.on("showMainFrame", () => {
         mainWindow.show();
