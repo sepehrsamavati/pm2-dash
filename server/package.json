@@ -6,7 +6,8 @@
     "build": "tsc",
     "seed": "node ./build/server/src/utils/seed.js",
     "start": "node ./build/server/src/app.js",
-    "secret": "node -e console.log(require('crypto').randomBytes(48).toString('hex'))"
+    "setup": "npm i --omit=dev",
+    "secret": "node -e \"console.log(require('crypto').randomBytes(48).toString('hex'))\""
   },
   "keywords": [],
   "author": "",
