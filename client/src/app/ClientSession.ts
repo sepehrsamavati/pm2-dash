@@ -15,7 +15,6 @@ export default class ClientSession {
     async initHttpConnection(basePath: string) {
         const result = new OperationResult();
 
-
         this.pm2HttpServerBasePath = basePath;
         this.connectionType = "HTTP_SERVER";
         const res = await this.httpServerRequest("/hello", "GET");
@@ -35,7 +34,8 @@ export default class ClientSession {
 
         const options: RequestInit = {
             method: method.toUpperCase(),
-            headers
+            headers,
+            signal: AbortSignal.timeout(10e3)
         };
 
         if (this.pm2HttpServerReplaceHttpStandardMethods) {
