@@ -51,6 +51,9 @@ fastify.register((instance, _, next) => {
     instance.addHook("onRequest", authGuard);
     instance.addHook("onRequest", accountTypeGuard(AccountType.Admin));
 
+    if (config.replaceHttpStandardMethods)
+        instance.put = instance.patch = instance.post;
+
     instance.get("/list", async (_, reply) => {
         return reply.send(await services.applications.userApplication.getAllViewModel());
     });
@@ -82,13 +85,18 @@ fastify.get("/hello", (req, reply) => {
     return reply
         .header(ClientServerInitHello.ServerKey, isValid ? shouldRepeat : "InvalidValue")
         .send({
-            version: config.majorVersion
+            version: config.majorVersion,
+            semver: config.appVersion,
+            replaceHttpStandardMethods: config.replaceHttpStandardMethods,
         });
 });
 
 fastify.register((instance, _, next) => {
     instance.addHook("onRequest", jwtResolve);
     instance.addHook("onRequest", authGuard);
+
+    if (config.replaceHttpStandardMethods)
+        instance.put = instance.patch = instance.post;
 
     instance.get("/list", async (req, reply) => {
         return reply.send(await services.applications.pm2Application.getList(req.locals.user));
