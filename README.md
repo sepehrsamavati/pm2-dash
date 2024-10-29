@@ -1,3 +1,7 @@
+<p align="center">
+  <img width="150" height="150" src="https://github.com/user-attachments/assets/33c8d60b-1a9e-47ed-8b5f-19e63371a762">
+</p>
+
 # PM2 Dash - Graphical User Interface for PM2
 
 ## Features
