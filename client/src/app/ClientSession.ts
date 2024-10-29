@@ -1,14 +1,15 @@
+import config from "../config/config";
 import PM2Service from "../../../common/services/pm2";
+import { ClientServerInitHello } from "../../../common/types/enums";
 import { OperationResult } from "../../../common/models/OperationResult";
 import type { Pm2ConnectionType } from "../../../common/types/ComInterface";
-import { ClientServerInitHello } from "../../../common/types/enums";
-import config from "../config/config";
 
 export default class ClientSession {
     connectionType: Pm2ConnectionType = "LOCAL_IPC";
     pm2Service = new PM2Service();
     pm2HttpServerBasePath = "";
     pm2HttpServerAccessToken = "";
+    pm2HttpServerReplaceHttpStandardMethods = false;
     repeatAfterMeText = crypto.randomUUID();
 
     async initHttpConnection(basePath: string) {
@@ -33,8 +34,14 @@ export default class ClientSession {
         const headers = new Headers();
 
         const options: RequestInit = {
-            method, headers
+            method: method.toUpperCase(),
+            headers
         };
+
+        if (this.pm2HttpServerReplaceHttpStandardMethods) {
+            if (options.method === "PUT" || options.method === "PATCH")
+                options.method = "POST";
+        }
 
         if (this.pm2HttpServerAccessToken)
             headers.append("AccessToken", this.pm2HttpServerAccessToken);
@@ -62,8 +69,13 @@ export default class ClientSession {
                     const res = await response.json();
 
                     if (typeof res.version === 'number') {
-                        if (res.version === config.majorVersion)
+                        if (res.version === config.majorVersion) {
+
+                            if (res.replaceHttpStandardMethods === true)
+                                this.pm2HttpServerReplaceHttpStandardMethods = true;
+
                             return result.succeeded("serverApproved");
+                        }
                         else
                             return result.failed("serverVersionDoesNotMatch");
                     }
@@ -90,6 +102,7 @@ export default class ClientSession {
         this.connectionType = "LOCAL_IPC";
         this.pm2HttpServerBasePath = "";
         this.pm2HttpServerAccessToken = "";
+        this.pm2HttpServerReplaceHttpStandardMethods = false;
     }
 
     async dispose() {

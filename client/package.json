@@ -1,6 +1,6 @@
 {
   "name": "pm2-dash-client",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Graphical user interface for PM2 process manager",
   "main": "./build/client/src/app/main.js",
   "scripts": {
