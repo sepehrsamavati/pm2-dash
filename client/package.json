@@ -13,7 +13,7 @@
   "repository": "https://github.com/sepehrsamavati/pm2-dash.git",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^35.7.5",
+    "electron": "^39.8.5",
     "electron-builder": "^24.13.3",
     "tsx": "^4.19.3",
     "typescript": "^5.5.4"
