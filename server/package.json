@@ -21,7 +21,7 @@
     "jsonwebtoken": "^9.0.2",
     "pm2": "^7.0.0",
     "reflect-metadata": "^0.2.2",
-    "sequelize": "^6.37.3",
+    "sequelize": "^6.37.8",
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {
